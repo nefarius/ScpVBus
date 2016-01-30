@@ -14,8 +14,8 @@ LANGUAGE LANG_GERMAN, SUBLANG_GERMAN_AUSTRIAN
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,104
- PRODUCTVERSION 1,0,0,104
+ FILEVERSION 1,0,1,0
+ PRODUCTVERSION 1,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x9L
@@ -32,12 +32,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Scarlet.Crush Productions"
             VALUE "FileDescription", "Scp Virtual Bus Driver"
-            VALUE "FileVersion", "1.0.0.104"
+            VALUE "FileVersion", "1.0.1.0"
             VALUE "InternalName", "ScpVBus.sys"
-            VALUE "LegalCopyright", "Copyright Â© 2012, 2013 Scarlet.Crush Productions. All rights reserved."
+            VALUE "LegalCopyright", "Copyright © 2012, 2013 Scarlet.Crush Productions, 2016 Benjamin Höglinger. All rights reserved."
             VALUE "OriginalFilename", "ScpVBus.sys"
             VALUE "ProductName", "Scp Virtual Bus Driver"
-            VALUE "ProductVersion", "1.0.0.104"
+            VALUE "ProductVersion", "1.0.1.0"
         END
     END
     BLOCK "VarFileInfo"
