@@ -26,10 +26,10 @@ ScpVBus.sys  = 1,,
 ;*****************************************
 
 [Manufacturer]
-%ManufacturerName%=Standard,NT$ARCH$
+%ManufacturerName%=SCProductions,NT$ARCH$
 
-[Standard.NT$ARCH$]
-%ScpVBus.DeviceDesc%=ScpVBus_Device, Root\ScpVBus ; TODO: edit hw-id
+[SCProductions.NT$ARCH$]
+%ScpVBus.DeviceDesc%=ScpVBus_Device, Root\ScpVBus
 
 [ScpVBus_Device.NT]
 CopyFiles=Drivers_Dir
@@ -77,7 +77,6 @@ KmdfLibraryVersion = $KMDFVERSION$
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
 ManufacturerName="Scarlet.Crush Productions"
-ClassName="System"
 DiskName = "Scp Virtual Bus Installation Media"
 ScpVBus.DeviceDesc = "Scp Virtual Bus Driver"
 ScpVBus.SVCDESC = "Scp Virtual Bus Driver"
