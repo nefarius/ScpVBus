@@ -4,8 +4,8 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=Sample ; TODO: edit Class
-ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Class=System
+ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
 Provider=%ManufacturerName%
 CatalogFile=ScpVBus.cat
 DriverVer= ; TODO: set DriverVer in stampinf property pages
@@ -14,13 +14,6 @@ DriverVer= ; TODO: set DriverVer in stampinf property pages
 DefaultDestDir = 12
 
 ; ================= Class section =====================
-
-[ClassInstall32]
-Addreg=SampleClassReg
-
-[SampleClassReg]
-HKR,,,0,%ClassName%
-HKR,,Icon,,-5
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
@@ -83,8 +76,8 @@ KmdfLibraryVersion = $KMDFVERSION$
 
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
-ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
-ClassName="Samples" ; TODO: edit ClassName
-DiskName = "ScpVBus Installation Disk"
-ScpVBus.DeviceDesc = "ScpVBus Device"
-ScpVBus.SVCDESC = "ScpVBus Service"
+ManufacturerName="Scarlet.Crush Productions"
+ClassName="System"
+DiskName = "Scp Virtual Bus Installation Media"
+ScpVBus.DeviceDesc = "Scp Virtual Bus Driver"
+ScpVBus.SVCDESC = "Scp Virtual Bus Driver"
