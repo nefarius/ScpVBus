@@ -410,7 +410,11 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 					status = STATUS_SUCCESS;
 
-					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", (int) pInfo->Length, (int) pInfo->InterfaceNumber, (int) pInfo->AlternateSetting, pInfo->NumberOfPipes));
+					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", 
+						(int) pInfo->Length, 
+						(int) pInfo->InterfaceNumber, 
+						(int) pInfo->AlternateSetting, 
+						pInfo->NumberOfPipes));
 
 					pInfo->Class    = 0xFF;
 					pInfo->SubClass = 0x5D;
@@ -436,7 +440,11 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 					pInfo = (PUSBD_INTERFACE_INFORMATION)((PCHAR) pInfo + pInfo->Length);
 
-					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", (int) pInfo->Length, (int) pInfo->InterfaceNumber, (int) pInfo->AlternateSetting, pInfo->NumberOfPipes));
+					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", 
+						(int) pInfo->Length, 
+						(int) pInfo->InterfaceNumber, 
+						(int) pInfo->AlternateSetting, 
+						pInfo->NumberOfPipes));
 
 					pInfo->Class    = 0xFF;
 					pInfo->SubClass = 0x5D;
@@ -478,7 +486,11 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 					pInfo = (PUSBD_INTERFACE_INFORMATION)((PCHAR) pInfo + pInfo->Length);
 
-					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", (int) pInfo->Length, (int) pInfo->InterfaceNumber, (int) pInfo->AlternateSetting, pInfo->NumberOfPipes));
+					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", 
+						(int) pInfo->Length, 
+						(int) pInfo->InterfaceNumber, 
+						(int) pInfo->AlternateSetting, 
+						pInfo->NumberOfPipes));
 
 					pInfo->Class    = 0xFF;
 					pInfo->SubClass = 0x5D;
@@ -496,7 +508,11 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 					pInfo = (PUSBD_INTERFACE_INFORMATION)((PCHAR) pInfo + pInfo->Length);
 
-					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", (int) pInfo->Length, (int) pInfo->InterfaceNumber, (int) pInfo->AlternateSetting, pInfo->NumberOfPipes));
+					Bus_KdPrint(("URB_FUNCTION_SELECT_CONFIGURATION : Length %d, Interface %d, Alternate %d, Pipes %d\n", 
+						(int) pInfo->Length, 
+						(int) pInfo->InterfaceNumber, 
+						(int) pInfo->AlternateSetting, 
+						pInfo->NumberOfPipes));
 
 					pInfo->Class    = 0xFF;
 					pInfo->SubClass = 0xFD;
@@ -510,8 +526,16 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 				{
 					PUSBD_INTERFACE_INFORMATION pInfo = &pHxp->UrbSelectInterface.Interface;
 
-					Bus_KdPrint(("URB_FUNCTION_SELECT_INTERFACE : Length %d, Interface %d, Alternate %d, Pipes %d\n", (int) pInfo->Length, (int) pInfo->InterfaceNumber, (int) pInfo->AlternateSetting, pInfo->NumberOfPipes));
-					Bus_KdPrint(("URB_FUNCTION_SELECT_INTERFACE : Class %d, SubClass %d, Protocol %d\n", (int) pInfo->Class, (int) pInfo->SubClass, (int) pInfo->Protocol));
+					Bus_KdPrint(("URB_FUNCTION_SELECT_INTERFACE : Length %d, Interface %d, Alternate %d, Pipes %d\n", 
+						(int) pInfo->Length, 
+						(int) pInfo->InterfaceNumber, 
+						(int) pInfo->AlternateSetting, 
+						pInfo->NumberOfPipes));
+
+					Bus_KdPrint(("URB_FUNCTION_SELECT_INTERFACE : Class %d, SubClass %d, Protocol %d\n", 
+						(int) pInfo->Class, 
+						(int) pInfo->SubClass, 
+						(int) pInfo->Protocol));
 
 					if (pInfo->InterfaceNumber == 1)
 					{
@@ -580,13 +604,17 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 			case URB_FUNCTION_GET_DESCRIPTOR_FROM_DEVICE :
 
-				Bus_KdPrint(("Descriptor : Type %d, Index %d\n", pHxp->UrbControlDescriptorRequest.DescriptorType, pHxp->UrbControlDescriptorRequest.Index));
+				Bus_KdPrint(("Descriptor : Type %d, Index %d\n", 
+					pHxp->UrbControlDescriptorRequest.DescriptorType, 
+					pHxp->UrbControlDescriptorRequest.Index));
 
 				switch (pHxp->UrbControlDescriptorRequest.DescriptorType)
 				{
 				case USB_DEVICE_DESCRIPTOR_TYPE:
 
-					Bus_KdPrint(("USB_DEVICE_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", pHxp->UrbControlDescriptorRequest.TransferBuffer, pHxp->UrbControlDescriptorRequest.TransferBufferLength));
+					Bus_KdPrint(("USB_DEVICE_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", 
+						pHxp->UrbControlDescriptorRequest.TransferBuffer, 
+						pHxp->UrbControlDescriptorRequest.TransferBufferLength));
 					{
 						PUSB_DEVICE_DESCRIPTOR pDescriptor = (PUSB_DEVICE_DESCRIPTOR) pHxp->UrbControlDescriptorRequest.TransferBuffer;
 
@@ -594,13 +622,13 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 						pDescriptor->bLength            = 0x12;
 						pDescriptor->bDescriptorType    = USB_DEVICE_DESCRIPTOR_TYPE;
-						pDescriptor->bcdUSB             = 0x0200;
+						pDescriptor->bcdUSB             = 0x0200; // USB v2.0
 						pDescriptor->bDeviceClass       = 0xFF;
 						pDescriptor->bDeviceSubClass    = 0xFF;
 						pDescriptor->bDeviceProtocol    = 0xFF;
 						pDescriptor->bMaxPacketSize0    = 0x08;
-						pDescriptor->idVendor           = 0x045E;
-						pDescriptor->idProduct          = 0x028E;
+						pDescriptor->idVendor           = 0x045E; // Microsoft Corp.
+						pDescriptor->idProduct          = 0x028E; // Xbox360 Controller
 						pDescriptor->bcdDevice          = 0x0114;
 						pDescriptor->iManufacturer      = 0x01;
 						pDescriptor->iProduct           = 0x02;
@@ -611,8 +639,145 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 				case USB_CONFIGURATION_DESCRIPTOR_TYPE:
 
-					Bus_KdPrint(("USB_CONFIGURATION_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", pHxp->UrbControlDescriptorRequest.TransferBuffer, pHxp->UrbControlDescriptorRequest.TransferBufferLength));
+					Bus_KdPrint(("USB_CONFIGURATION_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", 
+						pHxp->UrbControlDescriptorRequest.TransferBuffer, 
+						pHxp->UrbControlDescriptorRequest.TransferBufferLength));
 					{
+						/*
+						0x09,        //   bLength
+						0x02,        //   bDescriptorType (Configuration)
+						0x99, 0x00,  //   wTotalLength 153
+						0x04,        //   bNumInterfaces 4
+						0x01,        //   bConfigurationValue
+						0x00,        //   iConfiguration (String Index)
+						0xA0,        //   bmAttributes Remote Wakeup
+						0xFA,        //   bMaxPower 500mA
+
+						0x09,        //   bLength
+						0x04,        //   bDescriptorType (Interface)
+						0x00,        //   bInterfaceNumber 0
+						0x00,        //   bAlternateSetting
+						0x02,        //   bNumEndpoints 2
+						0xFF,        //   bInterfaceClass
+						0x5D,        //   bInterfaceSubClass
+						0x01,        //   bInterfaceProtocol
+						0x00,        //   iInterface (String Index)
+
+						0x11,        //   bLength
+						0x21,        //   bDescriptorType (HID)
+						0x00, 0x01,  //   bcdHID 1.00
+						0x01,        //   bCountryCode
+						0x25,        //   bNumDescriptors
+						0x81,        //   bDescriptorType[0] (Unknown 0x81)
+						0x14, 0x00,  //   wDescriptorLength[0] 20
+						0x00,        //   bDescriptorType[1] (Unknown 0x00)
+						0x00, 0x00,  //   wDescriptorLength[1] 0
+						0x13,        //   bDescriptorType[2] (Unknown 0x13)
+						0x01, 0x08,  //   wDescriptorLength[2] 2049
+						0x00,        //   bDescriptorType[3] (Unknown 0x00)
+						0x00,
+						0x07,        //   bLength
+						0x05,        //   bDescriptorType (Endpoint)
+						0x81,        //   bEndpointAddress (IN/D2H)
+						0x03,        //   bmAttributes (Interrupt)
+						0x20, 0x00,  //   wMaxPacketSize 32
+						0x04,        //   bInterval 4 (unit depends on device speed)
+
+						0x07,        //   bLength
+						0x05,        //   bDescriptorType (Endpoint)
+						0x01,        //   bEndpointAddress (OUT/H2D)
+						0x03,        //   bmAttributes (Interrupt)
+						0x20, 0x00,  //   wMaxPacketSize 32
+						0x08,        //   bInterval 8 (unit depends on device speed)
+
+						0x09,        //   bLength
+						0x04,        //   bDescriptorType (Interface)
+						0x01,        //   bInterfaceNumber 1
+						0x00,        //   bAlternateSetting
+						0x04,        //   bNumEndpoints 4
+						0xFF,        //   bInterfaceClass
+						0x5D,        //   bInterfaceSubClass
+						0x03,        //   bInterfaceProtocol
+						0x00,        //   iInterface (String Index)
+
+						0x1B,        //   bLength
+						0x21,        //   bDescriptorType (HID)
+						0x00, 0x01,  //   bcdHID 1.00
+						0x01,        //   bCountryCode
+						0x01,        //   bNumDescriptors
+						0x82,        //   bDescriptorType[0] (Unknown 0x82)
+						0x40, 0x01,  //   wDescriptorLength[0] 320
+						0x02, 0x20, 0x16, 0x83, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+						0x07,        //   bLength
+						0x05,        //   bDescriptorType (Endpoint)
+						0x82,        //   bEndpointAddress (IN/D2H)
+						0x03,        //   bmAttributes (Interrupt)
+						0x20, 0x00,  //   wMaxPacketSize 32
+						0x02,        //   bInterval 2 (unit depends on device speed)
+
+						0x07,        //   bLength
+						0x05,        //   bDescriptorType (Endpoint)
+						0x02,        //   bEndpointAddress (OUT/H2D)
+						0x03,        //   bmAttributes (Interrupt)
+						0x20, 0x00,  //   wMaxPacketSize 32
+						0x04,        //   bInterval 4 (unit depends on device speed)
+
+						0x07,        //   bLength
+						0x05,        //   bDescriptorType (Endpoint)
+						0x83,        //   bEndpointAddress (IN/D2H)
+						0x03,        //   bmAttributes (Interrupt)
+						0x20, 0x00,  //   wMaxPacketSize 32
+						0x40,        //   bInterval 64 (unit depends on device speed)
+
+						0x07,        //   bLength
+						0x05,        //   bDescriptorType (Endpoint)
+						0x03,        //   bEndpointAddress (OUT/H2D)
+						0x03,        //   bmAttributes (Interrupt)
+						0x20, 0x00,  //   wMaxPacketSize 32
+						0x10,        //   bInterval 16 (unit depends on device speed)
+
+						0x09,        //   bLength
+						0x04,        //   bDescriptorType (Interface)
+						0x02,        //   bInterfaceNumber 2
+						0x00,        //   bAlternateSetting
+						0x01,        //   bNumEndpoints 1
+						0xFF,        //   bInterfaceClass
+						0x5D,        //   bInterfaceSubClass
+						0x02,        //   bInterfaceProtocol
+						0x00,        //   iInterface (String Index)
+
+						0x09,        //   bLength
+						0x21,        //   bDescriptorType (HID)
+						0x00, 0x01,  //   bcdHID 1.00
+						0x01,        //   bCountryCode
+						0x22,        //   bNumDescriptors
+						0x84,        //   bDescriptorType[0] (Unknown 0x84)
+						0x07, 0x00,  //   wDescriptorLength[0] 7
+
+						0x07,        //   bLength
+						0x05,        //   bDescriptorType (Endpoint)
+						0x84,        //   bEndpointAddress (IN/D2H)
+						0x03,        //   bmAttributes (Interrupt)
+						0x20, 0x00,  //   wMaxPacketSize 32
+						0x10,        //   bInterval 16 (unit depends on device speed)
+
+						0x09,        //   bLength
+						0x04,        //   bDescriptorType (Interface)
+						0x03,        //   bInterfaceNumber 3
+						0x00,        //   bAlternateSetting
+						0x00,        //   bNumEndpoints 0
+						0xFF,        //   bInterfaceClass
+						0xFD,        //   bInterfaceSubClass
+						0x13,        //   bInterfaceProtocol
+						0x04,        //   iInterface (String Index)
+
+						0x06,        //   bLength
+						0x41,        //   bDescriptorType (Unknown)
+						0x00, 0x01, 0x01, 0x03,
+						// 153 bytes
+
+						// best guess: USB Standard Descriptor
+						*/
 						UCHAR Descriptor_Data[DESCRIPTOR_SIZE] = 
 						{
 							0x09, 0x02, 0x99, 0x00, 0x04, 0x01, 0x00, 0xA0, 0xFA, 0x09, 
@@ -661,7 +826,10 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 				case USB_STRING_DESCRIPTOR_TYPE:
 
-					Bus_KdPrint(("USB_STRING_DESCRIPTOR_TYPE : Index %d, Buffer %p, Length %d\n", pHxp->UrbControlDescriptorRequest.Index, pHxp->UrbControlDescriptorRequest.TransferBuffer, pHxp->UrbControlDescriptorRequest.TransferBufferLength));
+					Bus_KdPrint(("USB_STRING_DESCRIPTOR_TYPE : Index %d, Buffer %p, Length %d\n", 
+						pHxp->UrbControlDescriptorRequest.Index, 
+						pHxp->UrbControlDescriptorRequest.TransferBuffer, 
+						pHxp->UrbControlDescriptorRequest.TransferBufferLength));
 
 					if (pHxp->UrbControlDescriptorRequest.Index == 2)
 					{
@@ -685,12 +853,16 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 				case USB_INTERFACE_DESCRIPTOR_TYPE:
 
-					Bus_KdPrint(("USB_INTERFACE_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", pHxp->UrbControlDescriptorRequest.TransferBuffer, pHxp->UrbControlDescriptorRequest.TransferBufferLength));
+					Bus_KdPrint(("USB_INTERFACE_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", 
+						pHxp->UrbControlDescriptorRequest.TransferBuffer, 
+						pHxp->UrbControlDescriptorRequest.TransferBufferLength));
 					break;
 
 				case USB_ENDPOINT_DESCRIPTOR_TYPE:
 
-					Bus_KdPrint(("USB_ENDPOINT_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", pHxp->UrbControlDescriptorRequest.TransferBuffer, pHxp->UrbControlDescriptorRequest.TransferBufferLength));
+					Bus_KdPrint(("USB_ENDPOINT_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", 
+						pHxp->UrbControlDescriptorRequest.TransferBuffer, 
+						pHxp->UrbControlDescriptorRequest.TransferBufferLength));
 					break;
 
 				default:
