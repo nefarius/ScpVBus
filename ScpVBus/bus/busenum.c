@@ -210,6 +210,16 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return status;
 }
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Handles USB/URB requests. </summary>
+///
+/// <remarks>	Benjamin, 11.03.2016. </remarks>
+///
+/// <param name="DeviceObject">	The device object. </param>
+/// <param name="Irp">		   	The interrupt request. </param>
+///
+/// <returns>	A NTSTATUS. </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     PIO_STACK_LOCATION      irpStack;
@@ -249,10 +259,13 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 	{
     case IOCTL_INTERNAL_USB_SUBMIT_URB:
 		{
+			// get USB request block
 			PURB pHxp = (PURB) irpStack->Parameters.Others.Argument1;
 
+			// respond to request block function
 			switch (pHxp->UrbHeader.Function)
 			{
+				// requested control transfer
 			case URB_FUNCTION_CONTROL_TRANSFER :
 				{
 #if DBG
@@ -270,10 +283,12 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 						(int) pTransfer->SetupPacket[6], 
 						(int) pTransfer->SetupPacket[7]));
 #endif
+					// ignored; we are not interested in responding to control requests
 					status = STATUS_UNSUCCESSFUL;
 				}
 				break;
 
+				// requested bulk or interrupt transfer (HID reports and other stuff)
 			case URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER :
 				{
 					struct _URB_BULK_OR_INTERRUPT_TRANSFER* pTransfer = &pHxp->UrbBulkOrInterruptTransfer;
@@ -353,6 +368,7 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 						status = STATUS_SUCCESS;
 
+						// TODO: implement passing back LED status to user-mode
 #if DBG
 						if (pTransfer->TransferBufferLength == LEDSET_SIZE) // Led
 						{
@@ -1010,7 +1026,17 @@ VOID Bus_DecIoCount(__in PFDO_DEVICE_DATA FdoData)
     return;
 }
 
-
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Sends a HID report to a  Functional Device Object. </summary>
+///
+/// <remarks>	Benjamin, 11.03.2016. </remarks>
+///
+/// <param name="Report">  	The HID Input Report. </param>
+/// <param name="fdoData"> 	Information describing the Functional Device Object. </param>
+/// <param name="Transfer">	The transfer buffer for the Output Report. </param>
+///
+/// <returns>	A NTSTATUS. </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
 {
     PLIST_ENTRY         entry;
@@ -1019,35 +1045,40 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 
     UNREFERENCED_PARAMETER(Transfer);
 
+	// lock device list
     ExAcquireFastMutex(&fdoData->Mutex);
-
-    if (fdoData->NumPDOs == 0)
 	{
-        Bus_KdPrint(("No devices to report!\n"));
-        ExReleaseFastMutex(&fdoData->Mutex);
+		if (fdoData->NumPDOs == 0)
+		{
+			Bus_KdPrint(("No devices to report!\n"));
+			ExReleaseFastMutex(&fdoData->Mutex);
 
-        return STATUS_NO_SUCH_DEVICE;
-    }
+			return STATUS_NO_SUCH_DEVICE;
+		}
 
-    for (entry = fdoData->ListOfPDOs.Flink; entry != &fdoData->ListOfPDOs && !Found; entry = entry->Flink)
-	{
-        pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+		// find requested PDO
+		for (entry = fdoData->ListOfPDOs.Flink; entry != &fdoData->ListOfPDOs && !Found; entry = entry->Flink)
+		{
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
 
-        if (Report->SerialNo == pdoData->SerialNo) Found = pdoData->Present;
-    }
-
+			if (Report->SerialNo == pdoData->SerialNo) Found = pdoData->Present;
+		}
+	}
     ExReleaseFastMutex(&fdoData->Mutex);
 
+	// target device found
     if (Found)
 	{
 		int     Index;
 		BOOLEAN Changed = FALSE;
 
+		// compare current report to last known report
 		for (Index = 0; Index < REPORT_SIZE && !Changed; Index++)
 		{
 			if (pdoData->Report[Index] != Report->Data[Index]) Changed = TRUE;
 		}
 
+		// report has changed
 		if (Changed)
 		{
 			PIRP  PendingIrp = NULL;
@@ -1071,16 +1102,21 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 				KeRaiseIrql(DISPATCH_LEVEL, &PrevIrql);
 				{
 					PIO_STACK_LOCATION irpStack = IoGetCurrentIrpStackLocation(PendingIrp);
+					// get USB request block
 					PURB pHxp = (PURB) irpStack->Parameters.Others.Argument1;
 
+					// get transfer buffer
 					PUCHAR Buffer = (PUCHAR) pHxp->UrbBulkOrInterruptTransfer.TransferBuffer;
+					// set buffer length to report size
 					pHxp->UrbBulkOrInterruptTransfer.TransferBufferLength = REPORT_SIZE;
 
+					// copy report to URB transfer buffer
 					for (Index = 0; Index < REPORT_SIZE; Index++)
 					{
 						Buffer[Index] = pdoData->Report[Index] = Report->Data[Index];
 					}
 
+					// request completed
 					PendingIrp->IoStatus.Status = STATUS_SUCCESS;
 					IoCompleteRequest(PendingIrp, IO_NO_INCREMENT);
 				}
@@ -1088,6 +1124,7 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 			}
 		}
 
+		// pass back current rumble (vibration) state for this PDO
 		for (Index = 0; Index < RUMBLE_SIZE; Index++)
 		{
 			Transfer[Index] = pdoData->Rumble[Index];
@@ -1097,6 +1134,7 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 		return STATUS_SUCCESS;
     }
 
+	// invalid device specified
     Bus_KdPrint(("Device %d is not present\n", Report->SerialNo));
     return STATUS_NO_SUCH_DEVICE;
 }
