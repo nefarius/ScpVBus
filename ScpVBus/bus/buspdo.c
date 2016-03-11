@@ -598,9 +598,9 @@ VOID Bus_InterfaceDereference(__in PVOID Context)
 }
 
 
-BOOLEAN  USB_BUSIFFN Bus_IsDeviceHighSpeed(IN PVOID BusContext)
+BOOLEAN USB_BUSIFFN Bus_IsDeviceHighSpeed(IN PVOID BusContext)
 {
-    UNREFERENCED_PARAMETER(BusContext);
+	UNREFERENCED_PARAMETER(BusContext);
 
 	Bus_KdPrint(("Bus_IsDeviceHighSpeed : TRUE\n"));
 
@@ -609,11 +609,11 @@ BOOLEAN  USB_BUSIFFN Bus_IsDeviceHighSpeed(IN PVOID BusContext)
 
 NTSTATUS USB_BUSIFFN Bus_QueryBusInformation(IN PVOID BusContext, IN ULONG Level, IN OUT PVOID BusInformationBuffer, IN OUT PULONG BusInformationBufferLength, OUT PULONG BusInformationActualLength)
 {
-    UNREFERENCED_PARAMETER(BusContext);
-    UNREFERENCED_PARAMETER(Level);
-    UNREFERENCED_PARAMETER(BusInformationBuffer);
-    UNREFERENCED_PARAMETER(BusInformationBufferLength);
-    UNREFERENCED_PARAMETER(BusInformationActualLength);
+	UNREFERENCED_PARAMETER(BusContext);
+	UNREFERENCED_PARAMETER(Level);
+	UNREFERENCED_PARAMETER(BusInformationBuffer);
+	UNREFERENCED_PARAMETER(BusInformationBufferLength);
+	UNREFERENCED_PARAMETER(BusInformationActualLength);
 
 	Bus_KdPrint(("Bus_QueryBusInformation : STATUS_UNSUCCESSFUL\n"));
 	return STATUS_UNSUCCESSFUL;
@@ -621,8 +621,8 @@ NTSTATUS USB_BUSIFFN Bus_QueryBusInformation(IN PVOID BusContext, IN ULONG Level
 
 NTSTATUS USB_BUSIFFN Bus_SubmitIsoOutUrb(IN PVOID BusContext, IN PURB Urb)
 {
-    UNREFERENCED_PARAMETER(BusContext);
-    UNREFERENCED_PARAMETER(Urb);
+	UNREFERENCED_PARAMETER(BusContext);
+	UNREFERENCED_PARAMETER(Urb);
 
 	Bus_KdPrint(("Bus_SubmitIsoOutUrb : STATUS_UNSUCCESSFUL\n"));
 	return STATUS_UNSUCCESSFUL;
@@ -630,22 +630,22 @@ NTSTATUS USB_BUSIFFN Bus_SubmitIsoOutUrb(IN PVOID BusContext, IN PURB Urb)
 
 NTSTATUS USB_BUSIFFN Bus_QueryBusTime(IN PVOID BusContext, IN OUT PULONG CurrentUsbFrame)
 {
-    UNREFERENCED_PARAMETER(BusContext);
-    UNREFERENCED_PARAMETER(CurrentUsbFrame);
+	UNREFERENCED_PARAMETER(BusContext);
+	UNREFERENCED_PARAMETER(CurrentUsbFrame);
 
 	Bus_KdPrint(("Bus_QueryBusTime : STATUS_UNSUCCESSFUL\n"));
 	return STATUS_UNSUCCESSFUL;
 }
 
-VOID     USB_BUSIFFN Bus_GetUSBDIVersion(IN PVOID BusContext, IN OUT PUSBD_VERSION_INFORMATION VersionInformation, IN OUT PULONG HcdCapabilities)
+VOID USB_BUSIFFN Bus_GetUSBDIVersion(IN PVOID BusContext, IN OUT PUSBD_VERSION_INFORMATION VersionInformation, IN OUT PULONG HcdCapabilities)
 {
-    UNREFERENCED_PARAMETER(BusContext);
+	UNREFERENCED_PARAMETER(BusContext);
 
 	Bus_KdPrint(("GetUSBDIVersion : 0x500, 0x200\n"));
 
 	if (VersionInformation != NULL)
 	{
-		VersionInformation->USBDI_Version         = 0x500; /* Usbport */
+		VersionInformation->USBDI_Version = 0x500; /* Usbport */
 		VersionInformation->Supported_USB_Version = 0x200; /* USB 2.0 */
 	}
 
