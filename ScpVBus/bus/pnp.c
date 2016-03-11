@@ -613,40 +613,40 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
     plugOutAll = (UnPlug->SerialNo == 0);
 
     ExAcquireFastMutex(&FdoData->Mutex);
-
-    if (plugOutAll)
 	{
-        Bus_KdPrint(("Plugging out all the devices!\n"));
-    }
-	else
-	{
-        Bus_KdPrint(("Plugging out %d\n", UnPlug->SerialNo));
-    }
-
-    if (FdoData->NumPDOs == 0)
-	{
-        ExReleaseFastMutex(&FdoData->Mutex);
-
-        return STATUS_NO_SUCH_DEVICE;
-    }
-
-    for (entry = FdoData->ListOfPDOs.Flink; entry != &FdoData->ListOfPDOs; entry = entry->Flink)
-	{
-        pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
-
-        Bus_KdPrint(("Found device %d\n", pdoData->SerialNo));
-
-        if (plugOutAll || UnPlug->SerialNo == pdoData->SerialNo)
+		if (plugOutAll)
 		{
-            Bus_KdPrint(("Plugged out %d\n", pdoData->SerialNo));
+			Bus_KdPrint(("Plugging out all the devices!\n"));
+		}
+		else
+		{
+			Bus_KdPrint(("Plugging out %d\n", UnPlug->SerialNo));
+		}
 
-            pdoData->Present = FALSE;
-            found = TRUE;
+		if (FdoData->NumPDOs == 0)
+		{
+			ExReleaseFastMutex(&FdoData->Mutex);
 
-            if (!plugOutAll) break;
-        }
-    }
+			return STATUS_NO_SUCH_DEVICE;
+		}
 
+		for (entry = FdoData->ListOfPDOs.Flink; entry != &FdoData->ListOfPDOs; entry = entry->Flink)
+		{
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+
+			Bus_KdPrint(("Found device %d\n", pdoData->SerialNo));
+
+			if (plugOutAll || UnPlug->SerialNo == pdoData->SerialNo)
+			{
+				Bus_KdPrint(("Plugged out %d\n", pdoData->SerialNo));
+
+				pdoData->Present = FALSE;
+				found = TRUE;
+
+				if (!plugOutAll) break;
+			}
+		}
+	}
     ExReleaseFastMutex(&FdoData->Mutex);
 
     if (found)
@@ -670,41 +670,41 @@ NTSTATUS Bus_EjectDevice(PBUSENUM_EJECT_HARDWARE Eject, PFDO_DEVICE_DATA FdoData
     ejectAll = (Eject->SerialNo == 0);
 
     ExAcquireFastMutex(&FdoData->Mutex);
-
-    if (ejectAll)
 	{
-        Bus_KdPrint(("Ejecting all the pdos!\n"));
-    }
-	else
-	{
-        Bus_KdPrint(("Ejecting %d\n", Eject->SerialNo));
-    }
-
-    if (FdoData->NumPDOs == 0)
-	{
-        Bus_KdPrint(("No devices to eject!\n"));
-        ExReleaseFastMutex(&FdoData->Mutex);
-
-        return STATUS_NO_SUCH_DEVICE;
-    }
-
-    for (entry = FdoData->ListOfPDOs.Flink; entry != &FdoData->ListOfPDOs; entry = entry->Flink)
-	{
-        pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
-
-        Bus_KdPrint(("Found device %d\n", pdoData->SerialNo));
-
-        if (ejectAll || Eject->SerialNo == pdoData->SerialNo)
+		if (ejectAll)
 		{
-            Bus_KdPrint(("Ejected %d\n", pdoData->SerialNo));
-            found = TRUE;
+			Bus_KdPrint(("Ejecting all the pdos!\n"));
+		}
+		else
+		{
+			Bus_KdPrint(("Ejecting %d\n", Eject->SerialNo));
+		}
 
-            IoRequestDeviceEject(pdoData->Self);
+		if (FdoData->NumPDOs == 0)
+		{
+			Bus_KdPrint(("No devices to eject!\n"));
+			ExReleaseFastMutex(&FdoData->Mutex);
 
-            if (!ejectAll) break;
-        }
-    }
+			return STATUS_NO_SUCH_DEVICE;
+		}
 
+		for (entry = FdoData->ListOfPDOs.Flink; entry != &FdoData->ListOfPDOs; entry = entry->Flink)
+		{
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+
+			Bus_KdPrint(("Found device %d\n", pdoData->SerialNo));
+
+			if (ejectAll || Eject->SerialNo == pdoData->SerialNo)
+			{
+				Bus_KdPrint(("Ejected %d\n", pdoData->SerialNo));
+				found = TRUE;
+
+				IoRequestDeviceEject(pdoData->Self);
+
+				if (!ejectAll) break;
+			}
+		}
+	}
     ExReleaseFastMutex(&FdoData->Mutex);
 
     if (found)
