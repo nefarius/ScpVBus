@@ -346,7 +346,10 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 					}
 					else
 					{
-						Bus_KdPrint(("<< URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER : Handle %p, Flags %X, Length %d\n", pTransfer->PipeHandle, pTransfer->TransferFlags, pTransfer->TransferBufferLength));
+						Bus_KdPrint(("<< URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER : Handle %p, Flags %X, Length %d\n", 
+							pTransfer->PipeHandle, 
+							pTransfer->TransferFlags, 
+							pTransfer->TransferBufferLength));
 
 						status = STATUS_SUCCESS;
 
@@ -364,7 +367,15 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 							UCHAR* Buffer = pTransfer->TransferBuffer;
 							ULONG  Index;
 
-							Bus_KdPrint(("-- Buffer : %02X %02X %02X %02X %02X %02X %02X %02X", Buffer[0], Buffer[1], Buffer[2], Buffer[3], Buffer[4], Buffer[5], Buffer[6], Buffer[7]));
+							Bus_KdPrint(("-- Buffer : %02X %02X %02X %02X %02X %02X %02X %02X", 
+								Buffer[0], 
+								Buffer[1], 
+								Buffer[2], 
+								Buffer[3], 
+								Buffer[4], 
+								Buffer[5], 
+								Buffer[6], 
+								Buffer[7]));
 
 							for (Index = 0; Index < pTransfer->TransferBufferLength; Index++)
 							{
