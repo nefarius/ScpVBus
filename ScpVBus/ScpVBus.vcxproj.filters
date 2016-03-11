@@ -44,6 +44,9 @@
     <ClInclude Include="bus\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\ScpVBus.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="bus\busenum.rc">
