@@ -48,6 +48,7 @@ DEFINE_GUID (GUID_DEVCLASS_X360WIRED_CUSTOM, 0xA8BA2D1F, 0x894F, 0x464A, 0xB0, 0
 
 #define RUMBLE_SIZE 8
 #define LEDSET_SIZE 3
+#define LEDNUM_SIZE 1
 
 #if DBG
 
@@ -129,8 +130,9 @@ typedef struct _PDO_DEVICE_DATA {
     LIST_ENTRY  PendingQueue;
     KSPIN_LOCK  PendingQueueLock;
 
-	UCHAR		Rumble[8];
-	UCHAR		Report[20];
+	UCHAR		Rumble[RUMBLE_SIZE];
+	UCHAR		LedNumber;
+	UCHAR		Report[REPORT_SIZE];
 
 	UNICODE_STRING      InterfaceName;
 

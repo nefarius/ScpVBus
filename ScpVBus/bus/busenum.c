@@ -117,6 +117,16 @@ NTSTATUS Bus_CreateClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return status;
 }
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Responds to i/o control requests. </summary>
+///
+/// <remarks>	Benjamin, 12.03.2016. </remarks>
+///
+/// <param name="DeviceObject">	The device object. </param>
+/// <param name="Irp">		   	The irp. </param>
+///
+/// <returns>	A NTSTATUS. </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     PIO_STACK_LOCATION      irpStack;
@@ -128,6 +138,7 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     commonData = (PCOMMON_DEVICE_DATA) DeviceObject->DeviceExtension;
 
+	// not an FDO, return with error
 	if (!commonData->IsFDO)
 	{
         Irp->IoStatus.Status = status = STATUS_INVALID_DEVICE_REQUEST;
@@ -138,6 +149,7 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     fdoData = (PFDO_DEVICE_DATA) DeviceObject->DeviceExtension;
 
+	// child device not on the bus, return with error
     if (fdoData->DevicePnPState == Deleted)
 	{
         Irp->IoStatus.Status = status = STATUS_NO_SUCH_DEVICE;
@@ -149,14 +161,17 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     Bus_IncIoCount(fdoData);
     irpStack = IoGetCurrentIrpStackLocation(Irp);
 
+	// get input buffer and length
     buffer = Irp->AssociatedIrp.SystemBuffer;
     inlen = irpStack->Parameters.DeviceIoControl.InputBufferLength;
 
     status = STATUS_INVALID_PARAMETER;
 	Irp->IoStatus.Information = 0;
 
+	// respond to control code
     switch (irpStack->Parameters.DeviceIoControl.IoControlCode)
 	{
+		// plug-in request will create and initialize a new child on the bus
     case IOCTL_BUSENUM_PLUGIN_HARDWARE:
 
         if ((sizeof(BUSENUM_PLUGIN_HARDWARE) == inlen) && (((PBUSENUM_PLUGIN_HARDWARE) buffer)->Size == inlen))
@@ -167,6 +182,7 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
         break;
 
+		// unplug request will remove an existing child from the bus
     case IOCTL_BUSENUM_UNPLUG_HARDWARE:
 
         if ((sizeof(BUSENUM_UNPLUG_HARDWARE) == inlen) && (((PBUSENUM_UNPLUG_HARDWARE) buffer)->Size == inlen))
@@ -187,13 +203,21 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
         break;
 
+		// send report to child device
 	case IOCTL_BUSENUM_REPORT_HARDWARE:
 
+		// check I/O buffer size submitted by DeviceIoControl()
         if ((sizeof(BUSENUM_REPORT_HARDWARE) == inlen) && (((PBUSENUM_REPORT_HARDWARE) buffer)->Size == inlen))
 		{
+			// forward report to child device
             status = Bus_ReportDevice((PBUSENUM_REPORT_HARDWARE) buffer, fdoData, buffer);
 
-			if (NT_SUCCESS(status)) Irp->IoStatus.Information = RUMBLE_SIZE;
+			/* on success, set output buffer size
+			 *
+			 * a byte array including rumble information (8 bytes) and the LED index (1 byte)
+			 * is returned to the caller of DeviceIoControl() for further processing.
+			 */
+			if (NT_SUCCESS(status)) Irp->IoStatus.Information = (RUMBLE_SIZE + LEDNUM_SIZE);
         }
 		break;
 
@@ -232,6 +256,7 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     commonData = (PCOMMON_DEVICE_DATA) DeviceObject->DeviceExtension;
     irpStack = IoGetCurrentIrpStackLocation(Irp);
 
+	// not an FDO, return with error
     if (commonData->IsFDO)
 	{
         Irp->IoStatus.Status = status = STATUS_INVALID_DEVICE_REQUEST;
@@ -242,6 +267,7 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
     pdoData = (PPDO_DEVICE_DATA) DeviceObject->DeviceExtension;
     
+	// device not present on the bus, return with error
 	if (pdoData->Present == FALSE)
 	{
         Irp->IoStatus.Status = status = STATUS_DEVICE_NOT_CONNECTED;
@@ -271,8 +297,14 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 #if DBG
 					struct _URB_CONTROL_TRANSFER* pTransfer = &pHxp->UrbControlTransfer;
 
-					Bus_KdPrint(("URB_FUNCTION_CONTROL_TRANSFER : Function %X\n", pTransfer->Hdr.Function));
-					Bus_KdPrint(("URB_FUNCTION_CONTROL_TRANSFER : Handle %p, Flags %X, Length %d\n", pTransfer->PipeHandle, pTransfer->TransferFlags, pTransfer->TransferBufferLength));
+					Bus_KdPrint(("URB_FUNCTION_CONTROL_TRANSFER : Function %X\n", 
+						pTransfer->Hdr.Function));
+
+					Bus_KdPrint(("URB_FUNCTION_CONTROL_TRANSFER : Handle %p, Flags %X, Length %d\n", 
+						pTransfer->PipeHandle, 
+						pTransfer->TransferFlags, 
+						pTransfer->TransferBufferLength));
+
 					Bus_KdPrint(("URB_FUNCTION_CONTROL_TRANSFER : Setup [%02X %02X %02X %02X %02X %02X %02X %02X]\n", 
 						(int) pTransfer->SetupPacket[0], 
 						(int) pTransfer->SetupPacket[1], 
@@ -288,7 +320,7 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 				}
 				break;
 
-				// requested bulk or interrupt transfer (HID reports and other stuff)
+				// requested bulk or interrupt transfer (HID input and output reports)
 			case URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER :
 				{
 					struct _URB_BULK_OR_INTERRUPT_TRANSFER* pTransfer = &pHxp->UrbBulkOrInterruptTransfer;
@@ -368,22 +400,26 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 						status = STATUS_SUCCESS;
 
-						// TODO: implement passing back LED status to user-mode
-#if DBG
 						if (pTransfer->TransferBufferLength == LEDSET_SIZE) // Led
 						{
 							UCHAR* Buffer = pTransfer->TransferBuffer;
 
-							Bus_KdPrint(("-- Buffer : %02X %02X %02X", Buffer[0], Buffer[1], Buffer[2]));
+							Bus_KdPrint(("-- LED Buffer: %02X %02X %02X", Buffer[0], Buffer[1], Buffer[2]));
+
+							// extract LED byte to calculate controller index
+							if(Buffer[0] == 0x01 && Buffer[1] == 0x03 && Buffer[2] >= 0x02)
+							{
+								pdoData->LedNumber = (Buffer[2] - 0x02);
+
+								Bus_KdPrint(("-- LED Number: %d", pdoData->LedNumber));
+							}
 						}
-#endif
 
 						if (pTransfer->TransferBufferLength == RUMBLE_SIZE) // Rumble
 						{
 							UCHAR* Buffer = pTransfer->TransferBuffer;
-							ULONG  Index;
 
-							Bus_KdPrint(("-- Buffer : %02X %02X %02X %02X %02X %02X %02X %02X", 
+							Bus_KdPrint(("-- Rumble Buffer: %02X %02X %02X %02X %02X %02X %02X %02X", 
 								Buffer[0], 
 								Buffer[1], 
 								Buffer[2], 
@@ -393,10 +429,7 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 								Buffer[6], 
 								Buffer[7]));
 
-							for (Index = 0; Index < pTransfer->TransferBufferLength; Index++)
-							{
-								pdoData->Rumble[Index] = Buffer[Index];
-							}
+							RtlCopyBytes(pdoData->Rumble, Buffer, pTransfer->TransferBufferLength);
 						}
 					}
 				}
@@ -628,10 +661,11 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 				{
 				case USB_DEVICE_DESCRIPTOR_TYPE:
 
-					Bus_KdPrint(("USB_DEVICE_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", 
-						pHxp->UrbControlDescriptorRequest.TransferBuffer, 
-						pHxp->UrbControlDescriptorRequest.TransferBufferLength));
 					{
+						Bus_KdPrint(("USB_DEVICE_DESCRIPTOR_TYPE : Buffer %p, Length %d\n", 
+							pHxp->UrbControlDescriptorRequest.TransferBuffer, 
+							pHxp->UrbControlDescriptorRequest.TransferBufferLength));
+
 						PUSB_DEVICE_DESCRIPTOR pDescriptor = (PUSB_DEVICE_DESCRIPTOR) pHxp->UrbControlDescriptorRequest.TransferBuffer;
 
 						status = STATUS_SUCCESS;
@@ -1110,7 +1144,7 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 					// set buffer length to report size
 					pHxp->UrbBulkOrInterruptTransfer.TransferBufferLength = REPORT_SIZE;
 
-					// copy report to URB transfer buffer
+					// copy report to URB transfer buffer and cache
 					for (Index = 0; Index < REPORT_SIZE; Index++)
 					{
 						Buffer[Index] = pdoData->Report[Index] = Report->Data[Index];
@@ -1130,6 +1164,9 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 			Transfer[Index] = pdoData->Rumble[Index];
 			pdoData->Rumble[Index] = 0;
 		}
+
+		// pass back current LED number for this PDO
+		Transfer[8] = pdoData->LedNumber;
 
 		return STATUS_SUCCESS;
     }
