@@ -406,10 +406,13 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 
 							Bus_KdPrint(("-- LED Buffer: %02X %02X %02X", Buffer[0], Buffer[1], Buffer[2]));
 
-							// extract LED byte to calculate controller index
+							// extract LED byte to get controller slot
 							if(Buffer[0] == 0x01 && Buffer[1] == 0x03 && Buffer[2] >= 0x02)
 							{
-								pdoData->LedNumber = (Buffer[2] - 0x02);
+								if (Buffer[2] == 0x02) pdoData->LedNumber = 0;
+								if (Buffer[2] == 0x03) pdoData->LedNumber = 1;
+								if (Buffer[2] == 0x04) pdoData->LedNumber = 2;
+								if (Buffer[2] == 0x05) pdoData->LedNumber = 3;
 
 								Bus_KdPrint(("-- LED Number: %d", pdoData->LedNumber));
 							}
