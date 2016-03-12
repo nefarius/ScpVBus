@@ -8,7 +8,7 @@ Class=System
 ClassGuid={4D36E97D-E325-11CE-BFC1-08002BE10318}
 Provider=%ManufacturerName%
 CatalogFile=ScpVBus.cat
-DriverVer= ; TODO: set DriverVer in stampinf property pages
+DriverVer= ;
 
 [DestinationDirs]
 DefaultDestDir = 12
@@ -76,7 +76,7 @@ KmdfLibraryVersion = $KMDFVERSION$
 
 [Strings]
 SPSVCINST_ASSOCSERVICE= 0x00000002
-ManufacturerName="Scarlet.Crush Productions"
+ManufacturerName="Nefarius Software Solutions"
 DiskName = "Scp Virtual Bus Installation Media"
 ScpVBus.DeviceDesc = "Scp Virtual Bus Driver"
 ScpVBus.SVCDESC = "Scp Virtual Bus Driver"
