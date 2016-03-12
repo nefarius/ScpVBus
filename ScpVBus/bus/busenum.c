@@ -1064,7 +1064,7 @@ VOID Bus_DecIoCount(__in PFDO_DEVICE_DATA FdoData)
 }
 
 ///-------------------------------------------------------------------------------------------------
-/// <summary>	Sends a HID report to a  Functional Device Object. </summary>
+/// <summary>	Sends a HID report to a Functional Device Object. </summary>
 ///
 /// <remarks>	Benjamin, 11.03.2016. </remarks>
 ///
