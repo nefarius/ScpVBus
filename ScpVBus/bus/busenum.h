@@ -5,7 +5,7 @@
 #include <wdmsec.h>
 #include <wdmguid.h>
 #include <usbdrivr.h>
-#include "inc/ScpVBus.h"
+#include "../inc/ScpVBus.h"
 
 #define NTSTRSAFE_LIB
 #include <ntstrsafe.h>
