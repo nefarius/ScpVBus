@@ -47,3 +47,31 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex)
 {
 	return 0;
 }
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Output plug in. </summary>
+///
+/// <remarks>	Benjamin, 15.03.2016. </remarks>
+///
+/// <param name="dwUserIndex">	Zero-based index of the user. </param>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+DWORD XOutputPlugIn(DWORD dwUserIndex)
+{
+	return 0;
+}
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Output un plug. </summary>
+///
+/// <remarks>	Benjamin, 15.03.2016. </remarks>
+///
+/// <param name="dwUserIndex">	Zero-based index of the user. </param>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+DWORD XOutputUnPlug(DWORD dwUserIndex)
+{
+	return 0;
+}
