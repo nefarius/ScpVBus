@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "XOutput.h"
+#include <stdlib.h>
 
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Output set state. </summary>
@@ -16,7 +17,12 @@
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_STATE * pState)
 {
-	return 0;
+	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	{
+		return ERROR_NOT_CONNECTED;
+	}
+
+	return ERROR_SUCCESS;
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -31,7 +37,12 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_STATE * pState)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetState(DWORD dwUserIndex, XINPUT_VIBRATION * pVibration)
 {
-	return 0;
+	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	{
+		return ERROR_NOT_CONNECTED;
+	}
+
+	return ERROR_SUCCESS;
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -45,7 +56,12 @@ DWORD XOutputGetState(DWORD dwUserIndex, XINPUT_VIBRATION * pVibration)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetRealUserIndex(DWORD dwUserIndex)
 {
-	return 0;
+	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	{
+		return ERROR_NOT_CONNECTED;
+	}
+
+	return ERROR_SUCCESS;
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -59,7 +75,27 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputPlugIn(DWORD dwUserIndex)
 {
-	return 0;
+	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	{
+		return ERROR_NOT_CONNECTED;
+	}
+
+	DWORD trasfered = 0;
+	UCHAR buffer[16] = {};
+
+	buffer[0] = 0x10;
+
+	buffer[4] = ((dwUserIndex >> 0) & 0xFF);
+	buffer[5] = ((dwUserIndex >> 8) & 0xFF);
+	buffer[6] = ((dwUserIndex >> 16) & 0xFF);
+	buffer[8] = ((dwUserIndex >> 24) & 0xFF);
+
+	if (!DeviceIoControl(g_hScpVBus, 0x2A4000, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
+	{
+		return ERROR_NOT_CONNECTED;
+	}
+
+	return ERROR_SUCCESS;
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -73,5 +109,25 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputUnPlug(DWORD dwUserIndex)
 {
-	return 0;
+	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	{
+		return ERROR_NOT_CONNECTED;
+	}
+
+	DWORD trasfered = 0;
+	UCHAR buffer[16] = {};
+
+	buffer[0] = 0x10;
+
+	buffer[4] = ((dwUserIndex >> 0) & 0xFF);
+	buffer[5] = ((dwUserIndex >> 8) & 0xFF);
+	buffer[6] = ((dwUserIndex >> 16) & 0xFF);
+	buffer[8] = ((dwUserIndex >> 24) & 0xFF);
+
+	if (!DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
+	{
+		return ERROR_NOT_CONNECTED;
+	}
+
+	return ERROR_SUCCESS;
 }
