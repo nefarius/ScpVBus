@@ -18,14 +18,14 @@ static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD *pGamepad)
+DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
 		return ERROR_NOT_CONNECTED;
 	}
 
-	if(dwUserIndex < 1 || dwUserIndex > 3)
+	if (dwUserIndex < 1 || dwUserIndex > 3)
 	{
 		return ERROR_RANGE_NOT_FOUND;
 	}
@@ -45,10 +45,10 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD *pGamepad)
 
 	// concat gamepad info to buffer
 	memcpy_s(&buffer[10], FEEDBACK_BUFFER_LENGTH, pGamepad, sizeof(XINPUT_GAMEPAD));
-	
+
 	// vibration and LED info end up here
 	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
-	
+
 	// send report to bus, receive vibration and LED status
 	if (!DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr))
 	{
@@ -72,7 +72,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD *pGamepad)
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputGetState(DWORD dwUserIndex, BYTE *bLargeMotor, BYTE *bSmallMotor)
+DWORD XOutputGetState(DWORD dwUserIndex, BYTE* bLargeMotor, BYTE* bSmallMotor)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
@@ -176,3 +176,4 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 
 	return ERROR_SUCCESS;
 }
+
