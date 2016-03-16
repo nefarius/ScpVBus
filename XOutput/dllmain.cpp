@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include <SetupAPI.h>
 #include <stdlib.h>
-#include "XOutput.h"
 
 
 HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
@@ -71,18 +70,4 @@ void Initialize()
 	}
 
 	SetupDiDestroyDeviceInfoList(deviceInfoSet);
-
-	//XOutputUnPlug(1);
-	XOutputPlugIn(1);
-
-	UCHAR index = 0x00;
-
-	while(1)
-	{
-		XINPUT_STATE state = {};
-		state.Gamepad.bLeftTrigger = index++;
-		XOutputSetState(1, &state);
-
-		if (index > 0xFF) index = 0;
-	}
 }

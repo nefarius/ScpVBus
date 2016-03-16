@@ -5,8 +5,8 @@
 #include "XOutput.h"
 #include <stdlib.h>
 
-#define FEEDBACK_LENGTH 9
-static UCHAR g_Feedback[4][FEEDBACK_LENGTH] = {};
+#define FEEDBACK_BUFFER_LENGTH 9
+static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
 
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Output set state. </summary>
@@ -14,11 +14,11 @@ static UCHAR g_Feedback[4][FEEDBACK_LENGTH] = {};
 /// <remarks>	Benjamin, 15.03.2016. </remarks>
 ///
 /// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="pState">	  	[in,out] If non-null, the state. </param>
+/// <param name="pGamepad">	  	[in,out] If non-null, the state. </param>
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_STATE * pState)
+DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD *pGamepad)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
@@ -31,10 +31,11 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_STATE * pState)
 	}
 
 	DWORD trasfered = 0;
-	UCHAR buffer[28] = {};
+	BYTE buffer[28] = {};
 
 	buffer[0] = 0x1C;
 
+	// encode user index
 	buffer[4] = ((dwUserIndex >> 0) & 0xFF);
 	buffer[5] = ((dwUserIndex >> 8) & 0xFF);
 	buffer[6] = ((dwUserIndex >> 16) & 0xFF);
@@ -42,39 +43,20 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_STATE * pState)
 
 	buffer[9] = 0x14;
 
-	// buttons
-	buffer[10] = ((pState->Gamepad.wButtons >> 0) & 0xFF);
-	buffer[11] = ((pState->Gamepad.wButtons >> 8) & 0xFF);
-
-	// left trigger
-	buffer[12] = pState->Gamepad.bLeftTrigger;
-	// right trigger
-	buffer[13] = pState->Gamepad.bRightTrigger;
-
-	// left thumb X
-	buffer[14] = ((pState->Gamepad.sThumbLX >> 0) & 0xFF);
-	buffer[15] = ((pState->Gamepad.sThumbLX >> 8) & 0xFF);
-
-	// left thumb Y
-	buffer[16] = ((pState->Gamepad.sThumbLY >> 0) & 0xFF);
-	buffer[17] = ((pState->Gamepad.sThumbLY >> 8) & 0xFF);
-
-	// right thumb X
-	buffer[18] = ((pState->Gamepad.sThumbRX >> 0) & 0xFF);
-	buffer[19] = ((pState->Gamepad.sThumbRX >> 8) & 0xFF);
-
-	// right thumb Y
-	buffer[20] = ((pState->Gamepad.sThumbRY >> 0) & 0xFF);
-	buffer[21] = ((pState->Gamepad.sThumbRY >> 8) & 0xFF);
-
-	UCHAR output[FEEDBACK_LENGTH] = {};
+	// concat gamepad info to buffer
+	memcpy_s(&buffer[10], FEEDBACK_BUFFER_LENGTH, pGamepad, sizeof(XINPUT_GAMEPAD));
 	
-	if (!DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_LENGTH, &trasfered, nullptr))
+	// vibration and LED info end up here
+	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
+	
+	// send report to bus, receive vibration and LED status
+	if (!DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr))
 	{
 		return ERROR_NOT_CONNECTED;
 	}
 
-	memcpy(g_Feedback[(dwUserIndex - 1)], output, FEEDBACK_LENGTH);
+	// cache feedback
+	memcpy_s(g_Feedback[(dwUserIndex - 1)], FEEDBACK_BUFFER_LENGTH, output, FEEDBACK_BUFFER_LENGTH);
 
 	return ERROR_SUCCESS;
 }
@@ -85,11 +67,12 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_STATE * pState)
 /// <remarks>	Benjamin, 15.03.2016. </remarks>
 ///
 /// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="pVibration"> 	[in,out] If non-null, the vibration. </param>
+/// <param name="bLargeMotor">	[in,out] If non-null, the large motor. </param>
+/// <param name="bSmallMotor">	[in,out] If non-null, the small motor. </param>
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputGetState(DWORD dwUserIndex, XINPUT_VIBRATION * pVibration)
+DWORD XOutputGetState(DWORD dwUserIndex, BYTE *bLargeMotor, BYTE *bSmallMotor)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
@@ -101,9 +84,8 @@ DWORD XOutputGetState(DWORD dwUserIndex, XINPUT_VIBRATION * pVibration)
 		return ERROR_RANGE_NOT_FOUND;
 	}
 
-	auto pad = g_Feedback[(dwUserIndex - 1)];
-
-	
+	*bLargeMotor = g_Feedback[(dwUserIndex - 1)][3];
+	*bSmallMotor = g_Feedback[(dwUserIndex - 1)][4];
 
 	return ERROR_SUCCESS;
 }
@@ -144,7 +126,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	}
 
 	DWORD trasfered = 0;
-	UCHAR buffer[16] = {};
+	BYTE buffer[16] = {};
 
 	buffer[0] = 0x10;
 
@@ -178,7 +160,7 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	}
 
 	DWORD trasfered = 0;
-	UCHAR buffer[16] = {};
+	BYTE buffer[16] = {};
 
 	buffer[0] = 0x10;
 

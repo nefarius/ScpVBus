@@ -16,13 +16,14 @@ extern "C" {  // only need to export C interface if
 #endif
 
 	DLL_EXPORT DWORD XOutputSetState(
-		_In_  DWORD        dwUserIndex,
-		_Out_ XINPUT_STATE *pState
+		_In_  DWORD              dwUserIndex,
+		_Out_ XINPUT_GAMEPAD     *pGamepad
 		);
 
 	DLL_EXPORT DWORD XOutputGetState(
 		_In_    DWORD            dwUserIndex,
-		_Inout_ XINPUT_VIBRATION *pVibration
+		_Inout_ BYTE             *bLargeMotor,
+		_Inout_ BYTE             *bSmallMotor
 		);
 
 	DLL_EXPORT DWORD XOutputGetRealUserIndex(
