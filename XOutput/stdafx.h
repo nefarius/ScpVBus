@@ -14,3 +14,4 @@
 
 
 // TODO: reference additional headers your program requires here
+extern HANDLE g_hScpVBus;

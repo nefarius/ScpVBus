@@ -29,6 +29,14 @@ extern "C" {  // only need to export C interface if
 		_In_    DWORD            dwUserIndex
 		);
 
+	DLL_EXPORT DWORD XOutputPlugIn(
+		_In_    DWORD            dwUserIndex
+		);
+
+	DLL_EXPORT DWORD XOutputUnPlug(
+		_In_    DWORD            dwUserIndex
+		);
+
 #ifdef __cplusplus
 }
 #endif
