@@ -30,6 +30,11 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
+	if (pGamepad == nullptr)
+	{
+		return ERROR_VBUS_INVALID_STATE_INFO;
+	}
+
 	DWORD trasfered = 0;
 	BYTE buffer[28] = {};
 
@@ -44,7 +49,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	buffer[9] = 0x14;
 
 	// concat gamepad info to buffer
-	memcpy_s(&buffer[10], FEEDBACK_BUFFER_LENGTH, pGamepad, sizeof(XINPUT_GAMEPAD));
+	memcpy_s(&buffer[10], _countof(buffer), pGamepad, sizeof(XINPUT_GAMEPAD));
 
 	// vibration and LED info end up here
 	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
@@ -84,8 +89,17 @@ DWORD XOutputGetState(DWORD dwUserIndex, BYTE* bLargeMotor, BYTE* bSmallMotor)
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
-	*bLargeMotor = g_Feedback[(dwUserIndex - 1)][3];
-	*bSmallMotor = g_Feedback[(dwUserIndex - 1)][4];
+	auto pad = g_Feedback[(dwUserIndex - 1)];
+
+	if (bLargeMotor != nullptr)
+	{
+		*bLargeMotor = (pad[1] == 0x08) ? pad[3] : 0x00;
+	}
+
+	if (bSmallMotor != nullptr)
+	{
+		*bSmallMotor = (pad[1] == 0x08) ? pad[4] : 0x00;
+	}
 
 	return ERROR_SUCCESS;
 }
@@ -106,7 +120,10 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	*dwRealIndex = g_Feedback[(dwUserIndex - 1)][8];
+	if (dwRealIndex != nullptr)
+	{
+		*dwRealIndex = g_Feedback[(dwUserIndex - 1)][8];
+	}
 
 	return ERROR_SUCCESS;
 }
