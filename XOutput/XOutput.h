@@ -10,6 +10,10 @@
 #endif
 #endif
 
+#define ERROR_VBUS_NOT_CONNECTED			0x90000
+#define ERROR_VBUS_INDEX_OUT_OF_RANGE		0x90001
+#define ERROR_VBUS_IOCTL_REQUEST_FAILED		0x90002
+
 #ifdef __cplusplus
 extern "C"
 { // only need to export C interface if
@@ -23,20 +27,21 @@ extern "C"
 
 	DLL_EXPORT DWORD XOutputGetState(
 		_In_    DWORD dwUserIndex,
-		        _Inout_ BYTE* bLargeMotor,
-		        _Inout_ BYTE* bSmallMotor
+		        _Out_ BYTE* bLargeMotor,
+		        _Out_ BYTE* bSmallMotor
 	);
 
 	DLL_EXPORT DWORD XOutputGetRealUserIndex(
-		_In_    DWORD dwUserIndex
+		_In_ DWORD dwUserIndex,
+		     _Out_ DWORD* dwRealIndex
 	);
 
 	DLL_EXPORT DWORD XOutputPlugIn(
-		_In_    DWORD dwUserIndex
+		_In_ DWORD dwUserIndex
 	);
 
 	DLL_EXPORT DWORD XOutputUnPlug(
-		_In_    DWORD dwUserIndex
+		_In_ DWORD dwUserIndex
 	);
 
 #ifdef __cplusplus

@@ -22,12 +22,12 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
 	if (dwUserIndex < 1 || dwUserIndex > 3)
 	{
-		return ERROR_RANGE_NOT_FOUND;
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	DWORD trasfered = 0;
@@ -52,7 +52,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	// send report to bus, receive vibration and LED status
 	if (!DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr))
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	// cache feedback
@@ -76,12 +76,12 @@ DWORD XOutputGetState(DWORD dwUserIndex, BYTE* bLargeMotor, BYTE* bSmallMotor)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
 	if (dwUserIndex < 1 || dwUserIndex > 3)
 	{
-		return ERROR_RANGE_NOT_FOUND;
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	*bLargeMotor = g_Feedback[(dwUserIndex - 1)][3];
@@ -99,12 +99,14 @@ DWORD XOutputGetState(DWORD dwUserIndex, BYTE* bLargeMotor, BYTE* bSmallMotor)
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputGetRealUserIndex(DWORD dwUserIndex)
+DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_NOT_CONNECTED;
 	}
+
+	*dwRealIndex = g_Feedback[(dwUserIndex - 1)][8];
 
 	return ERROR_SUCCESS;
 }
@@ -122,7 +124,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
 	DWORD trasfered = 0;
@@ -137,7 +139,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 
 	if (!DeviceIoControl(g_hScpVBus, 0x2A4000, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	return ERROR_SUCCESS;
@@ -156,7 +158,7 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
 	DWORD trasfered = 0;
@@ -171,7 +173,7 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 
 	if (!DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
 	{
-		return ERROR_NOT_CONNECTED;
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	return ERROR_SUCCESS;
