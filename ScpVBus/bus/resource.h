@@ -1402,7 +1402,7 @@
 #define PRINTDLGORD                     1538
 #define _WIN32_WINNT_WINBLUE            0x0603
 #define _WIN32_IE_IE60SP2               0x0603
-#define _WIN32_WINNT                    0x0603
+//#define _WIN32_WINNT                    0x0603
 #define PRNSETUPDLGORD                  1539
 #define FINDDLGORD                      1540
 #define REPLACEDLGORD                   1541
