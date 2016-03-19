@@ -45,6 +45,9 @@ extern "C"
 		_In_ DWORD dwUserIndex
 	);
 
+	DLL_EXPORT void Initialize(
+		);
+
 #ifdef __cplusplus
 }
 #endif
