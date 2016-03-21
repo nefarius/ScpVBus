@@ -28,8 +28,9 @@ extern "C"
 
 	DLL_EXPORT DWORD XOutputGetState(
 		_In_    DWORD dwUserIndex,
-		        _Out_ BYTE* bLargeMotor,
-		        _Out_ BYTE* bSmallMotor
+		        _Out_ PBYTE bVibrate,
+		        _Out_ PBYTE bLargeMotor,
+		        _Out_ PBYTE bSmallMotor
 	);
 
 	DLL_EXPORT DWORD XOutputGetRealUserIndex(

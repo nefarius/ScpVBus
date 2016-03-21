@@ -72,12 +72,13 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 /// <remarks>	Benjamin, 15.03.2016. </remarks>
 ///
 /// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="bLargeMotor">	[in,out] If non-null, the large motor. </param>
-/// <param name="bSmallMotor">	[in,out] If non-null, the small motor. </param>
+/// <param name="bVibrate">   	The vibrate. </param>
+/// <param name="bLargeMotor">	If non-null, the large motor. </param>
+/// <param name="bSmallMotor">	If non-null, the small motor. </param>
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputGetState(DWORD dwUserIndex, BYTE* bLargeMotor, BYTE* bSmallMotor)
+DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor)
 {
 	if (g_hScpVBus == INVALID_HANDLE_VALUE)
 	{
@@ -91,14 +92,19 @@ DWORD XOutputGetState(DWORD dwUserIndex, BYTE* bLargeMotor, BYTE* bSmallMotor)
 
 	auto pad = g_Feedback[(dwUserIndex - 1)];
 
+	if (bVibrate != nullptr)
+	{
+		*bVibrate = (pad[1] == 0x08) ? 0x01 : 0x00;
+	}
+
 	if (bLargeMotor != nullptr)
 	{
-		*bLargeMotor = (pad[1] == 0x08) ? pad[3] : 0x00;
+		*bLargeMotor = pad[3];
 	}
 
 	if (bSmallMotor != nullptr)
 	{
-		*bSmallMotor = (pad[1] == 0x08) ? pad[4] : 0x00;
+		*bSmallMotor = pad[4];
 	}
 
 	return ERROR_SUCCESS;
