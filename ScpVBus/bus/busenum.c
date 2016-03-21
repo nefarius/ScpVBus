@@ -7,6 +7,7 @@ NPAGED_LOOKASIDE_LIST g_LookAside;
 #pragma alloc_text(INIT, DriverEntry)
 #pragma alloc_text(PAGE, Bus_DriverUnload)
 #pragma alloc_text(PAGE, Bus_CreateClose)
+#pragma alloc_text(PAGE, Bus_DispatchSystemControl)
 #endif
 
 NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING RegistryPath)
@@ -32,12 +33,40 @@ NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING Regi
     DriverObject->MajorFunction [IRP_MJ_POWER                  ] = Bus_Power;
     DriverObject->MajorFunction [IRP_MJ_DEVICE_CONTROL         ] = Bus_IoCtl;
     DriverObject->MajorFunction [IRP_MJ_INTERNAL_DEVICE_CONTROL] = Bus_Internal_IoCtl;
+	DriverObject->MajorFunction [IRP_MJ_SYSTEM_CONTROL         ] = Bus_DispatchSystemControl;
 
 	DriverObject->DriverUnload = Bus_DriverUnload;
     DriverObject->DriverExtension->AddDevice = Bus_AddDevice;
 
     return STATUS_SUCCESS;
 }
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Respond to WMI requests. </summary>
+///
+/// <remarks>	We don't actually need nor use this, it's just there to make Driver Verifier happy. </remarks>
+///
+/// <param name="DeviceObject">	The device object. </param>
+/// <param name="Irp">		   	The irp. </param>
+///
+/// <returns>	A NTSTATUS. </returns>
+///-------------------------------------------------------------------------------------------------
+NTSTATUS Bus_DispatchSystemControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
+{
+	NTSTATUS         status;
+	PFDO_DEVICE_DATA pdev;
+
+	PAGED_CODE();
+
+	pdev = (PFDO_DEVICE_DATA)DeviceObject->DeviceExtension;
+
+	// whatever request was made, just forward it, we don't care
+	IoSkipCurrentIrpStackLocation(Irp);
+	status = IoCallDriver(pdev->NextLowerDriver, Irp);
+
+	return status;
+}
+
 
 VOID Bus_DriverUnload(__in PDRIVER_OBJECT DriverObject)
 {

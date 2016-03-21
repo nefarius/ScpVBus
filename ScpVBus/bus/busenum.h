@@ -201,6 +201,9 @@ VOID Bus_DecIoCount(__in PFDO_DEVICE_DATA Data);
 
 NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoData, PUCHAR pBuffer);
 
+__drv_dispatchType(IRP_MJ_SYSTEM_CONTROL)
+DRIVER_DISPATCH Bus_DispatchSystemControl;
+
 //
 // Defined in pnp.c
 //
