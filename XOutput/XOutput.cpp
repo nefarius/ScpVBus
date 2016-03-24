@@ -25,7 +25,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 1 || dwUserIndex > 3)
+	if (dwUserIndex < 1 || dwUserIndex > 4)
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
@@ -85,7 +85,7 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 1 || dwUserIndex > 3)
+	if (dwUserIndex < 1 || dwUserIndex > 4)
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
