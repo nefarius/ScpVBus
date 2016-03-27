@@ -7,6 +7,7 @@
 
 #define FEEDBACK_BUFFER_LENGTH 9
 static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
+#define DEVICE_IO_CONTROL_FAILED(retval) ((retval == FALSE) && (GetLastError() != ERROR_SUCCESS))
 
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Output set state. </summary>
@@ -56,7 +57,9 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
 
 	// send report to bus, receive vibration and LED status
-	if (!DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr))
+	auto retval = DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
 		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
@@ -167,7 +170,9 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	buffer[6] = ((busIndex >> 16) & 0xFF);
 	buffer[8] = ((busIndex >> 24) & 0xFF);
 
-	if (!DeviceIoControl(g_hScpVBus, 0x2A4000, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
+	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4000, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
 		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
@@ -207,7 +212,9 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	buffer[6] = ((busIndex >> 16) & 0xFF);
 	buffer[8] = ((busIndex >> 24) & 0xFF);
 
-	if (!DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
+	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
 		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
@@ -234,7 +241,9 @@ DWORD XOutputUnPlugAll()
 
 	buffer[0] = 0x10;
 
-	if (!DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
+	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
 		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
