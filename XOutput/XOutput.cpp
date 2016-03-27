@@ -4,10 +4,67 @@
 #include "stdafx.h"
 #include "XOutput.h"
 #include <stdlib.h>
+#include <mutex>
+#include <SetupAPI.h>
 
 #define FEEDBACK_BUFFER_LENGTH 9
 static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
-#define DEVICE_IO_CONTROL_FAILED(retval) ((retval == FALSE) && (GetLastError() != ERROR_SUCCESS))
+std::once_flag initFlag;
+HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <summary>	Attempts to find and open the first instance of the virtual bus. </summary>
+///
+/// <remarks>	Gets only called once. If no virtual bus is present, 
+/// 			all XOutput functions report ERROR_VBUS_NOT_CONNECTED. </remarks>
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void Initialize()
+{
+	std::call_once(initFlag, []()
+	{
+		SP_DEVICE_INTERFACE_DATA deviceInterfaceData = {};
+		deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
+		GUID deviceClassGuid = { 0xF679F562, 0x3164, 0x42CE,{ 0xA4, 0xDB, 0xE7 ,0xDD ,0xBE ,0x72 ,0x39 ,0x09 } };
+		DWORD memberIndex = 0;
+		DWORD requiredSize = 0;
+
+		auto deviceInfoSet = SetupDiGetClassDevs(&deviceClassGuid, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+
+		while (SetupDiEnumDeviceInterfaces(deviceInfoSet, nullptr, &deviceClassGuid, memberIndex, &deviceInterfaceData))
+		{
+			// get required target buffer size
+			SetupDiGetDeviceInterfaceDetail(deviceInfoSet, &deviceInterfaceData, nullptr, 0, &requiredSize, nullptr);
+
+			// allocate target buffer
+			auto detailDataBuffer = static_cast<PSP_DEVICE_INTERFACE_DETAIL_DATA>(malloc(requiredSize));
+			detailDataBuffer->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+
+			// get detail buffer
+			if (!SetupDiGetDeviceInterfaceDetail(deviceInfoSet, &deviceInterfaceData, detailDataBuffer, requiredSize, &requiredSize, nullptr))
+			{
+				SetupDiDestroyDeviceInfoList(deviceInfoSet);
+				free(detailDataBuffer);
+				continue;
+			}
+
+			// bus found, open it
+			g_hScpVBus = CreateFile(detailDataBuffer->DevicePath,
+				GENERIC_READ | GENERIC_WRITE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE,
+				nullptr,
+				OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+				nullptr);
+
+			free(detailDataBuffer);
+			break;
+		}
+
+		SetupDiDestroyDeviceInfoList(deviceInfoSet);
+	});
+}
+
 
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Output set state. </summary>
@@ -21,12 +78,14 @@ static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 {
-	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
 	{
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 0 || dwUserIndex > 3)
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
@@ -84,12 +143,14 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor)
 {
-	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
 	{
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 0 || dwUserIndex > 3)
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
@@ -125,7 +186,9 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 {
-	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
 	{
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
@@ -149,12 +212,14 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputPlugIn(DWORD dwUserIndex)
 {
-	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
 	{
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 0 || dwUserIndex > 3)
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
@@ -191,12 +256,14 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputUnPlug(DWORD dwUserIndex)
 {
-	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
 	{
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 0 || dwUserIndex > 3)
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
@@ -231,7 +298,9 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputUnPlugAll()
 {
-	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
 	{
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
