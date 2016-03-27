@@ -25,7 +25,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 1 || dwUserIndex > 3)
+	if (dwUserIndex < 0 || dwUserIndex > 3)
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
@@ -37,14 +37,15 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 
 	DWORD trasfered = 0;
 	BYTE buffer[28] = {};
+	auto busIndex = dwUserIndex + 1;
 
 	buffer[0] = 0x1C;
 
 	// encode user index
-	buffer[4] = ((dwUserIndex >> 0) & 0xFF);
-	buffer[5] = ((dwUserIndex >> 8) & 0xFF);
-	buffer[6] = ((dwUserIndex >> 16) & 0xFF);
-	buffer[7] = ((dwUserIndex >> 24) & 0xFF);
+	buffer[4] = ((busIndex >> 0) & 0xFF);
+	buffer[5] = ((busIndex >> 8) & 0xFF);
+	buffer[6] = ((busIndex >> 16) & 0xFF);
+	buffer[7] = ((busIndex >> 24) & 0xFF);
 
 	buffer[9] = 0x14;
 
@@ -61,7 +62,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	}
 
 	// cache feedback
-	memcpy_s(g_Feedback[(dwUserIndex - 1)], FEEDBACK_BUFFER_LENGTH, output, FEEDBACK_BUFFER_LENGTH);
+	memcpy_s(g_Feedback[dwUserIndex], FEEDBACK_BUFFER_LENGTH, output, FEEDBACK_BUFFER_LENGTH);
 
 	return ERROR_SUCCESS;
 }
@@ -72,7 +73,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 /// <remarks>	Benjamin, 15.03.2016. </remarks>
 ///
 /// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="bVibrate">   	The vibrate. </param>
+/// <param name="bVibrate">   	Gets set to 0x01 if vibration is requested, 0x00 otherwise. </param>
 /// <param name="bLargeMotor">	If non-null, the large motor. </param>
 /// <param name="bSmallMotor">	If non-null, the small motor. </param>
 ///
@@ -85,12 +86,12 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	if (dwUserIndex < 1 || dwUserIndex > 3)
+	if (dwUserIndex < 0 || dwUserIndex > 3)
 	{
 		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
-	auto pad = g_Feedback[(dwUserIndex - 1)];
+	auto pad = g_Feedback[dwUserIndex];
 
 	if (bVibrate != nullptr)
 	{
@@ -128,7 +129,7 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 
 	if (dwRealIndex != nullptr)
 	{
-		*dwRealIndex = g_Feedback[(dwUserIndex - 1)][8];
+		*dwRealIndex = g_Feedback[dwUserIndex][8];
 	}
 
 	return ERROR_SUCCESS;
@@ -150,15 +151,21 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
+	if (dwUserIndex < 0 || dwUserIndex > 3)
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
 	DWORD trasfered = 0;
 	BYTE buffer[16] = {};
+	auto busIndex = dwUserIndex + 1;
 
 	buffer[0] = 0x10;
 
-	buffer[4] = ((dwUserIndex >> 0) & 0xFF);
-	buffer[5] = ((dwUserIndex >> 8) & 0xFF);
-	buffer[6] = ((dwUserIndex >> 16) & 0xFF);
-	buffer[8] = ((dwUserIndex >> 24) & 0xFF);
+	buffer[4] = ((busIndex >> 0) & 0xFF);
+	buffer[5] = ((busIndex >> 8) & 0xFF);
+	buffer[6] = ((busIndex >> 16) & 0xFF);
+	buffer[8] = ((busIndex >> 24) & 0xFF);
 
 	if (!DeviceIoControl(g_hScpVBus, 0x2A4000, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
 	{
@@ -184,15 +191,21 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
+	if (dwUserIndex < 0 || dwUserIndex > 3)
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
 	DWORD trasfered = 0;
 	BYTE buffer[16] = {};
+	auto busIndex = dwUserIndex + 1;
 
 	buffer[0] = 0x10;
 
-	buffer[4] = ((dwUserIndex >> 0) & 0xFF);
-	buffer[5] = ((dwUserIndex >> 8) & 0xFF);
-	buffer[6] = ((dwUserIndex >> 16) & 0xFF);
-	buffer[8] = ((dwUserIndex >> 24) & 0xFF);
+	buffer[4] = ((busIndex >> 0) & 0xFF);
+	buffer[5] = ((busIndex >> 8) & 0xFF);
+	buffer[6] = ((busIndex >> 16) & 0xFF);
+	buffer[8] = ((busIndex >> 24) & 0xFF);
 
 	if (!DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
 	{
@@ -202,3 +215,29 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	return ERROR_SUCCESS;
 }
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Output un plug all. </summary>
+///
+/// <remarks>	Benjamin, 24.03.2016. </remarks>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+DWORD XOutputUnPlugAll()
+{
+	if (g_hScpVBus == INVALID_HANDLE_VALUE)
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	DWORD trasfered = 0;
+	BYTE buffer[16] = {};
+
+	buffer[0] = 0x10;
+
+	if (!DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	return ERROR_SUCCESS;
+}

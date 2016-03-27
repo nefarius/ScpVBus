@@ -4,9 +4,9 @@
 
 #ifndef DLL_EXPORT
 #if XOUTPUT_EXPORTS
-#define DLL_EXPORT __declspec(dllexport)
+#define XOUTPUT_API __declspec(dllexport)
 #else
-    #define DLL_EXPORT __declspec(dllimport)
+#define XOUTPUT_API __declspec(dllimport)
 #endif
 #endif
 
@@ -21,33 +21,37 @@ extern "C"
 	// used by C++ source code
 #endif
 
-	DLL_EXPORT DWORD XOutputSetState(
+	XOUTPUT_API DWORD XOutputSetState(
 		_In_  DWORD dwUserIndex,
 		      _Out_ XINPUT_GAMEPAD* pGamepad
 	);
 
-	DLL_EXPORT DWORD XOutputGetState(
+	XOUTPUT_API DWORD XOutputGetState(
 		_In_    DWORD dwUserIndex,
 		        _Out_ PBYTE bVibrate,
 		        _Out_ PBYTE bLargeMotor,
 		        _Out_ PBYTE bSmallMotor
 	);
 
-	DLL_EXPORT DWORD XOutputGetRealUserIndex(
+	XOUTPUT_API DWORD XOutputGetRealUserIndex(
 		_In_ DWORD dwUserIndex,
 		     _Out_ DWORD* dwRealIndex
 	);
 
-	DLL_EXPORT DWORD XOutputPlugIn(
+	XOUTPUT_API DWORD XOutputPlugIn(
 		_In_ DWORD dwUserIndex
 	);
 
-	DLL_EXPORT DWORD XOutputUnPlug(
+	XOUTPUT_API DWORD XOutputUnPlug(
 		_In_ DWORD dwUserIndex
 	);
 
+<<<<<<< HEAD
 	DLL_EXPORT void Initialize(
 		);
+=======
+	XOUTPUT_API DWORD XOutputUnPlugAll();
+>>>>>>> 59ff1f7965c08ec22b31f8f8cd402d59cb5605d6
 
 #ifdef __cplusplus
 }

@@ -125,9 +125,14 @@ NTSTATUS Bus_PDO_PnP(__in PDEVICE_OBJECT DeviceObject, __in PIRP Irp, __in PIO_S
 					RemoveEntryList(&DeviceData->Link);
 				}
                 ExReleaseFastMutex(&fdoData->Mutex);
-            }
 
-			status = Bus_DestroyPdo(DeviceObject, DeviceData);
+				status = Bus_DestroyPdo(DeviceObject, DeviceData);
+            }
+			else
+			{
+				status = STATUS_SUCCESS;
+			}
+			
             break;
         }
 
