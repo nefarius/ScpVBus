@@ -66,6 +66,8 @@ void Initialize()
 			OPEN_EXISTING,
 			FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
 			nullptr);
+
+		free(detailDataBuffer);
 		break;
 	}
 
