@@ -46,12 +46,7 @@ extern "C"
 		_In_ DWORD dwUserIndex
 	);
 
-<<<<<<< HEAD
-	DLL_EXPORT void Initialize(
-		);
-=======
 	XOUTPUT_API DWORD XOutputUnPlugAll();
->>>>>>> 59ff1f7965c08ec22b31f8f8cd402d59cb5605d6
 
 #ifdef __cplusplus
 }
