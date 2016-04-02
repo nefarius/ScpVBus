@@ -220,3 +220,4 @@ ScpVBus/bus/objchk_win7_amd64/amd64/busenum.res
 ScpVBus/bus/objchk_wlh_amd64/amd64/busenum.res
 devcon.exe
 vXboxInstall/vXboxInstall.h
+*.rej

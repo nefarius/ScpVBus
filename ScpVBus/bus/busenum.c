@@ -260,9 +260,20 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			status =  Bus_IsDevicePluggedIn(buffer, fdoData, buffer);
 			if (NT_SUCCESS(status)) 
 				Irp->IoStatus.Information = sizeof(int);
-
 		}
+		break;
 
+
+	// Get the number of empty slots - Valid values are 0-4
+	case IOCTL_BUSENUM_EMPTY_SLOTS:
+		// check I/O buffer size submitted by DeviceIoControl()
+		if ((sizeof(UCHAR) == outlen))
+		{
+			// Call the worker function
+			status = Bus_GetNumberOfEmptySlots(fdoData, buffer);
+			if (NT_SUCCESS(status))
+				Irp->IoStatus.Information = sizeof(UCHAR);
+		}
 		break;
 
     default:
@@ -1237,8 +1248,6 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 ///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_IsDevicePluggedIn(PVOID Report, PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
 {
-
-	UNREFERENCED_PARAMETER(Transfer);
 	PLIST_ENTRY         entry;
 	PPDO_DEVICE_DATA    pdoData = NULL;
 	BOOLEAN             Found = FALSE;
@@ -1293,5 +1302,51 @@ NTSTATUS Bus_IsDevicePluggedIn(PVOID Report, PFDO_DEVICE_DATA fdoData, PUCHAR Tr
 
 	
 
+	return STATUS_SUCCESS;
+}
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Get number of empty slots in the Virtual Bus. </summary>
+///
+/// <remarks>	Shaul, 2.04.2016. </remarks>
+///
+/// <param name="fdoData"> 	Information describing the Functional Device Object. </param>
+/// <param name="Transfer">	The transfer buffer for the Output - points to number of empty slots. </param>
+///
+/// <returns>	A NTSTATUS. </returns>
+///-------------------------------------------------------------------------------------------------
+NTSTATUS Bus_GetNumberOfEmptySlots(PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
+{
+	PLIST_ENTRY         entry;
+	UCHAR				count = 4;
+	PPDO_DEVICE_DATA    pdoData = NULL;
+	BOOLEAN             Found = FALSE;
+
+
+	// lock device list
+	ExAcquireFastMutex(&fdoData->Mutex);
+	{
+		if (fdoData->NumPDOs == 0)
+		{
+			Bus_KdPrint(("No devices to report!\n"));
+			ExReleaseFastMutex(&fdoData->Mutex);
+
+			Transfer[0] = count;
+			return STATUS_SUCCESS;
+		}
+
+
+		// find requested PDO
+		// If found then break
+		for (entry = fdoData->ListOfPDOs.Flink; entry != &fdoData->ListOfPDOs && !Found; entry = entry->Flink)
+		{
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+			if (0 != pdoData->SerialNo)
+				count--;				
+
+		}
+	}
+	ExReleaseFastMutex(&fdoData->Mutex);
+	Transfer[0] = count;
 	return STATUS_SUCCESS;
 }
