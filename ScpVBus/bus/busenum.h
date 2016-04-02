@@ -200,6 +200,8 @@ VOID Bus_IncIoCount(__in PFDO_DEVICE_DATA Data);
 VOID Bus_DecIoCount(__in PFDO_DEVICE_DATA Data);
 
 NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoData, PUCHAR pBuffer);
+NTSTATUS Bus_IsDevicePluggedIn(PVOID Report, PFDO_DEVICE_DATA fdoData, PUCHAR Transfer);
+NTSTATUS Bus_GetNumberOfEmptySlots(PFDO_DEVICE_DATA fdoData, PUCHAR Transfer);
 
 __drv_dispatchType(IRP_MJ_SYSTEM_CONTROL)
 DRIVER_DISPATCH Bus_DispatchSystemControl;

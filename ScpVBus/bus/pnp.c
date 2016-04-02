@@ -24,7 +24,7 @@ NTSTATUS Bus_AddDevice(__in PDRIVER_OBJECT DriverObject, __in PDEVICE_OBJECT Phy
 
     UNREFERENCED_PARAMETER(nameLength);
     PAGED_CODE();
-
+	//KdBreakPoint();
     Bus_KdPrint(("Add Device: 0x%p\n", PhysicalDeviceObject));
 
     status = IoCreateDevice(DriverObject, sizeof(FDO_DEVICE_DATA), NULL, FILE_DEVICE_BUS_EXTENDER, FILE_DEVICE_SECURE_OPEN, TRUE, &deviceObject);
