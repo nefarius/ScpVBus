@@ -23,6 +23,11 @@ NTSTATUS Bus_PDO_PnP(__in PDEVICE_OBJECT DeviceObject, __in PIRP Irp, __in PIO_S
 	{
     case IRP_MN_START_DEVICE:
 
+		
+
+		UNREFERENCED_PARAMETER(Irp);
+		PAGED_CODE();
+
         DeviceData->DevicePowerState = PowerDeviceD0;
         SET_NEW_PNP_STATE(DeviceData, Started);
 

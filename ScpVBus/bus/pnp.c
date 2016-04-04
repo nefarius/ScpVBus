@@ -394,9 +394,19 @@ NTSTATUS Bus_StartFdo(__in PFDO_DEVICE_DATA FdoData, __in PIRP Irp)
 {
     NTSTATUS status;
     POWER_STATE powerState;
+	PWSTR  pSymbolicNameList;
 
     UNREFERENCED_PARAMETER(Irp);
     PAGED_CODE();
+
+	//// Test that there isn't another such bus
+	status = IoGetDeviceInterfaces(&GUID_DEVINTERFACE_SCPVBUS, NULL, 0/*DEVICE_INTERFACE_INCLUDE_NONACTIVE*/, &pSymbolicNameList);
+	if (0 != *pSymbolicNameList)
+	{
+		Bus_KdPrint(("Add Device (bus): Already exists\n"));
+		status = STATUS_NO_SUCH_DEVICE;
+		return status;
+	}
 
     status = IoSetDeviceInterfaceState(&FdoData->InterfaceName, TRUE);
 
