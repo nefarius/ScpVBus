@@ -30,6 +30,7 @@
 
 #define IOCTL_BUSENUM_ISDEVPLUGGED	BUSENUM_RW_IOCTL(IOCTL_BUSENUM_BASE+0x100)
 #define IOCTL_BUSENUM_EMPTY_SLOTS	BUSENUM_RW_IOCTL(IOCTL_BUSENUM_BASE+0x101)
+#define IOCTL_BUSENUM_PROC_ID		BUSENUM_RW_IOCTL(IOCTL_BUSENUM_BASE+0x102)
 
 
 #ifdef __cplusplus
@@ -75,6 +76,10 @@ extern "C"
 		_Out_	PUCHAR nSlots
 		);
 
+	XOUTPUT_API DWORD XOutputIsCtrlOwned(
+		_In_    DWORD dwUserIndex,
+		_Out_	PBOOL Owned
+		);
 
 #ifdef __cplusplus
 }

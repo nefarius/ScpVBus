@@ -332,11 +332,7 @@ DWORD XOutputUnPlugAll()
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-
-XOUTPUT_API DWORD XOutputIsCtrlExist(
-	_In_    DWORD dwUserIndex,
-	_Out_ PBOOL Exist
-	)
+XOUTPUT_API DWORD XOutputIsCtrlExist(_In_    DWORD dwUserIndex,	_Out_ PBOOL Exist)
 {
 	ULONG buffer[1];
 	ULONG output[1];
@@ -375,11 +371,7 @@ XOUTPUT_API DWORD XOutputIsCtrlExist(
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-
-XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(
-	_In_    DWORD  dwUserIndex,
-	_Out_	PUCHAR nSlots
-	)
+XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(_In_    DWORD  dwUserIndex,	_Out_	PUCHAR nSlots)
 
 {
 	UCHAR output[1];
@@ -397,6 +389,49 @@ XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(
 		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 
 	*nSlots = *output;
+
+	return ERROR_SUCCESS;
+}
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Test if a device is owned by the calling process. </summary>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+///
+///  <param name="Owned">	Pointer to result. </param>
+///
+/// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+XOUTPUT_API DWORD XOutputIsCtrlOwned(_In_    DWORD dwUserIndex,	_Out_	PBOOL Owned)
+{
+	ULONG buffer[1];
+	ULONG output[1];
+	DWORD trasfered = 0;
+
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	// Prepare the User Index for sending
+	buffer[0] = dwUserIndex;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PROC_ID, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
+	if (!retval || *output == 0)
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+
+	// Process ID of creating process and of the current process
+	// Then compare them
+	DWORD OrigProcID = *output;
+	DWORD ThisProcID = GetCurrentProcessId();
+	if (ThisProcID == OrigProcID)
+		*Owned = TRUE;
+	else
+		*Owned = FALSE;
 
 	return ERROR_SUCCESS;
 }
