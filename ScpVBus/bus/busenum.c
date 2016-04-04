@@ -10,6 +10,22 @@ NPAGED_LOOKASIDE_LIST g_LookAside;
 #pragma alloc_text(PAGE, Bus_DispatchSystemControl)
 #endif
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Driver entry routine. </summary>
+///
+/// <remarks>
+/// DriverEntry is the first routine called after a driver is loaded, and is responsible for
+/// initializing the driver.
+/// </remarks>
+///
+/// <param name="DriverObject">	The driver object. </param>
+/// <param name="RegistryPath">	Full pathname of the registry file. </param>
+///
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING RegistryPath)
 {
     Bus_KdPrint(("Driver Entry\n"));
@@ -44,12 +60,20 @@ NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING Regi
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Respond to WMI requests. </summary>
 ///
-/// <remarks>	We don't actually need nor use this, it's just there to make Driver Verifier happy. </remarks>
+/// <remarks>
+/// We don't actually need nor use this, it's just there to make Driver Verifier happy.
+/// </remarks>
 ///
-/// <param name="DeviceObject">	The device object. </param>
-/// <param name="Irp">		   	The irp. </param>
+/// <param name="DeviceObject">	Caller-supplied pointer to a DEVICE_OBJECT structure. This is the
+/// 							device object for the target device, previously created by the
+/// 							driver's AddDevice routine. </param>
+/// <param name="Irp">		   	Caller-supplied pointer to an IRP structure that describes the
+/// 							requested I/O operation. </param>
 ///
-/// <returns>	A NTSTATUS. </returns>
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
 ///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_DispatchSystemControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -67,7 +91,18 @@ NTSTATUS Bus_DispatchSystemControl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 	return status;
 }
 
-
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Unload routine. </summary>
+///
+/// <remarks>
+/// The Unload routine performs any operations that are necessary before the system unloads the
+/// driver.
+/// </remarks>
+///
+/// <param name="DriverObject">	The driver object. </param>
+///
+/// <returns>	None. </returns>
+///-------------------------------------------------------------------------------------------------
 VOID Bus_DriverUnload(__in PDRIVER_OBJECT DriverObject)
 {
     UNREFERENCED_PARAMETER(DriverObject);
@@ -84,7 +119,19 @@ VOID Bus_DriverUnload(__in PDRIVER_OBJECT DriverObject)
     return;
 }
 
-
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Responds to device open (CreateFile()) and close (CloseHandle()) requests. </summary>
+///
+/// <remarks>	Handles IRP_MJ_CREATE and IRP_MJ_CLOSE requests. </remarks>
+///
+/// <param name="DeviceObject">	Pointer to the target device object. </param>
+/// <param name="Irp">		   	The irp. </param>
+///
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_CreateClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     PIO_STACK_LOCATION  irpStack;
@@ -147,14 +194,23 @@ NTSTATUS Bus_CreateClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 }
 
 ///-------------------------------------------------------------------------------------------------
-/// <summary>	Responds to i/o control requests. </summary>
+/// <summary>	DispatchDeviceControl routine. </summary>
 ///
-/// <remarks>	Benjamin, 12.03.2016. </remarks>
+/// <remarks>
+/// The DispatchDeviceControl routine services IRPs containing the IRP_MJ_DEVICE_CONTROL I/O
+/// function code.
+/// </remarks>
 ///
-/// <param name="DeviceObject">	The device object. </param>
-/// <param name="Irp">		   	The irp. </param>
+/// <param name="DeviceObject">	Caller-supplied pointer to a DEVICE_OBJECT structure. This is the
+/// 							device object for the target device, previously created by the
+/// 							driver's AddDevice routine. </param>
+/// <param name="Irp">		   	Caller-supplied pointer to an IRP structure that describes the
+/// 							requested I/O operation. </param>
 ///
-/// <returns>	A NTSTATUS. </returns>
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
 ///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -264,14 +320,20 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 }
 
 ///-------------------------------------------------------------------------------------------------
-/// <summary>	Handles USB/URB requests. </summary>
+/// <summary>	DispatchInternalDeviceControl routine. Handles USB/URB requests. </summary>
 ///
-/// <remarks>	Benjamin, 11.03.2016. </remarks>
+/// <remarks>
+/// The DispatchInternalDeviceControl routine services IRPs containing the
+/// IRP_MJ_INTERNAL_DEVICE_CONTROL I/O function code.
+/// </remarks>
 ///
 /// <param name="DeviceObject">	The device object. </param>
 /// <param name="Irp">		   	The interrupt request. </param>
 ///
-/// <returns>	A NTSTATUS. </returns>
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
 ///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
@@ -989,7 +1051,19 @@ NTSTATUS Bus_Internal_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     return status;
 }
 
-
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Cancel routine. </summary>
+///
+/// <remarks>	The Cancel routine cancels an I/O operation. </remarks>
+///
+/// <param name="DeviceObject">	Caller-supplied pointer to a DEVICE_OBJECT structure. This is the
+/// 							device object for the target device, previously created by the
+/// 							driver's AddDevice routine. </param>
+/// <param name="Irp">		   	Caller-supplied pointer to an IRP structure that describes the
+/// 							I/O operation to be canceled. </param>
+///
+/// <returns>	None. </returns>
+///-------------------------------------------------------------------------------------------------
 VOID Bus_CancelIrp(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 {
     PPDO_DEVICE_DATA pdoData = (PPDO_DEVICE_DATA) DeviceObject->DeviceExtension;
@@ -1101,7 +1175,10 @@ VOID Bus_DecIoCount(__in PFDO_DEVICE_DATA FdoData)
 /// <param name="fdoData"> 	Information describing the Functional Device Object. </param>
 /// <param name="Transfer">	The transfer buffer for the Output Report. </param>
 ///
-/// <returns>	A NTSTATUS. </returns>
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
 ///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
 {

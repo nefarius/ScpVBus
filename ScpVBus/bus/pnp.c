@@ -14,6 +14,25 @@
 #pragma alloc_text(PAGE, Bus_EjectDevice)
 #endif
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	AddDevice routine. </summary>
+///
+/// <remarks>
+/// The AddDevice routine is responsible for creating functional device objects (FDO) or filter
+/// device objects (filter DO) for devices enumerated by the Plug and Play (PnP) manager.
+/// </remarks>
+///
+/// <param name="DriverObject">		   	Caller-supplied pointer to a DRIVER_OBJECT structure.
+/// 									This is the driver's driver object. </param>
+/// <param name="PhysicalDeviceObject">	Caller-supplied pointer to a DEVICE_OBJECT structure
+/// 									representing a physical device object (PDO) created by a
+/// 									lower-level driver. </param>
+///
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_AddDevice(__in PDRIVER_OBJECT DriverObject, __in PDEVICE_OBJECT PhysicalDeviceObject)
 {
     NTSTATUS            status;
@@ -94,6 +113,24 @@ End:
     return status;
 }
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	DispatchPnP routine. </summary>
+///
+/// <remarks>
+/// The DispatchPnP routine services IRPs that contain the IRP_MJ_PNP I/O function code.
+/// </remarks>
+///
+/// <param name="DeviceObject">	Caller-supplied pointer to a DEVICE_OBJECT structure. This is the
+/// 							device object for the target device, previously created by the
+/// 							driver's AddDevice routine. </param>
+/// <param name="Irp">		   	Caller-supplied pointer to an IRP structure that describes the
+/// 							requested I/O operation. </param>
+///
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_PnP(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     PIO_STACK_LOCATION      irpStack;
