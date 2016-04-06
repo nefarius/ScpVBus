@@ -68,17 +68,6 @@ void Initialize()
 	});
 }
 
-
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output set state. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="pGamepad">	  	[in,out] If non-null, the state. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 {
 	Initialize();
@@ -132,18 +121,6 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output get state. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="bVibrate">   	Gets set to 0x01 if vibration is requested, 0x00 otherwise. </param>
-/// <param name="bLargeMotor">	If non-null, the large motor. </param>
-/// <param name="bSmallMotor">	If non-null, the small motor. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor)
 {
 	Initialize();
@@ -178,15 +155,6 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output get real user index. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 {
 	Initialize();
@@ -204,15 +172,6 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output plug in. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputPlugIn(DWORD dwUserIndex)
 {
 	Initialize();
@@ -248,15 +207,6 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output un plug. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputUnPlug(DWORD dwUserIndex)
 {
 	Initialize();
@@ -292,13 +242,6 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output un plug all. </summary>
-///
-/// <remarks>	Benjamin, 24.03.2016. </remarks>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputUnPlugAll()
 {
 	Initialize();
