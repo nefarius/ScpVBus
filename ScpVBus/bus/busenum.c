@@ -217,6 +217,7 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     PIO_STACK_LOCATION      irpStack;
     NTSTATUS                status;
     ULONG                   inlen;
+    ULONG                   outlen;
     PFDO_DEVICE_DATA        fdoData;
     PVOID                   buffer;
     PCOMMON_DEVICE_DATA     commonData;
@@ -249,6 +250,7 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 	// get input buffer and length
     buffer = Irp->AssociatedIrp.SystemBuffer;
     inlen = irpStack->Parameters.DeviceIoControl.InputBufferLength;
+    outlen = irpStack->Parameters.DeviceIoControl.OutputBufferLength;
 
     status = STATUS_INVALID_PARAMETER;
 	Irp->IoStatus.Information = 0;
@@ -304,6 +306,40 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 			 */
 			if (NT_SUCCESS(status)) Irp->IoStatus.Information = (RUMBLE_SIZE + LEDNUM_SIZE);
         }
+		break;
+
+	// Check if device exists
+	case IOCTL_BUSENUM_ISDEVPLUGGED:
+		// check I/O buffer size submitted by DeviceIoControl()
+		if ((sizeof(int) == inlen) || (sizeof(int) == outlen))
+		{
+			status =  Bus_IsDevicePluggedIn(buffer, fdoData, buffer);
+			if (NT_SUCCESS(status)) 
+				Irp->IoStatus.Information = sizeof(int);
+		}
+		break;
+
+	// Get the process ID of the creating process
+	case IOCTL_BUSENUM_PROC_ID:
+		// check I/O buffer size submitted by DeviceIoControl()
+		if ((sizeof(DWORD) == inlen) || (sizeof(ULONG) == outlen))
+		{
+			status = Bus_GetDeviceCreateProcID(buffer, fdoData, buffer);
+			if (NT_SUCCESS(status))
+				Irp->IoStatus.Information = sizeof(ULONG);
+		}
+		break;
+
+	// Get the number of empty slots - Valid values are 0-4
+	case IOCTL_BUSENUM_EMPTY_SLOTS:
+		// check I/O buffer size submitted by DeviceIoControl()
+		if ((sizeof(UCHAR) == outlen))
+		{
+			// Call the worker function
+			status = Bus_GetNumberOfEmptySlots(fdoData, buffer);
+			if (NT_SUCCESS(status))
+				Irp->IoStatus.Information = sizeof(UCHAR);
+		}
 		break;
 
     default:
@@ -1283,4 +1319,178 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
 	// invalid device specified
     Bus_KdPrint(("Device %d is not present\n", Report->SerialNo));
     return STATUS_NO_SUCH_DEVICE;
+}
+
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Sends a HID report to a Functional Device Object. </summary>
+///
+/// <remarks>	Benjamin, 11.03.2016. </remarks>
+///
+/// <param name="Report">  	The HID Input Report. </param>
+/// <param name="fdoData"> 	Information describing the Functional Device Object. </param>
+/// <param name="Transfer">	The transfer buffer for the Output Report. </param>
+///
+/// <returns>	A NTSTATUS. </returns>
+///-------------------------------------------------------------------------------------------------
+NTSTATUS Bus_IsDevicePluggedIn(PVOID Report, PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
+{
+	PLIST_ENTRY         entry;
+	PPDO_DEVICE_DATA    pdoData = NULL;
+	BOOLEAN             Found = FALSE;
+	ULONG				SerialNo = *(ULONG *)Report;
+
+	// lock device list
+	ExAcquireFastMutex(&fdoData->Mutex);
+	{
+		if (fdoData->NumPDOs == 0)
+		{
+			Bus_KdPrint(("No devices to report!\n"));
+			ExReleaseFastMutex(&fdoData->Mutex);
+
+			return STATUS_NO_SUCH_DEVICE;
+		}
+
+		// Test that the input id is legitimate
+		if (SerialNo < 1 || SerialNo >4)
+		{
+			Bus_KdPrint(("Wrong Device Number!\n"));
+			ExReleaseFastMutex(&fdoData->Mutex);
+			return STATUS_INVALID_DEVICE_REQUEST;
+		};
+
+		// find requested PDO
+		// If found then break
+		for (entry = fdoData->ListOfPDOs.Flink; entry != &fdoData->ListOfPDOs && !Found; entry = entry->Flink)
+		{
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+
+			if (SerialNo == pdoData->SerialNo)
+			{
+				Found = TRUE;
+				break;
+			}
+				
+		}
+	}
+	ExReleaseFastMutex(&fdoData->Mutex);
+
+	// target device found
+	if (Found)
+	{
+		Transfer[0] = 1;
+		Bus_KdPrint(("Device %d is present\n", SerialNo));
+	}
+	else
+	{
+ 		Transfer[0] = 0;
+		Bus_KdPrint(("Device %d is NOT present\n", SerialNo));
+	}
+
+	
+
+	return STATUS_SUCCESS;
+}
+
+NTSTATUS Bus_GetDeviceCreateProcID(PVOID Report, PFDO_DEVICE_DATA fdoData, PULONG Transfer)
+{
+	PLIST_ENTRY         entry;
+	PPDO_DEVICE_DATA    pdoData = NULL;
+	BOOLEAN             Found = FALSE;
+	ULONG				SerialNo = *(ULONG *)Report;
+
+	// lock device list
+	ExAcquireFastMutex(&fdoData->Mutex);
+	{
+		if (fdoData->NumPDOs == 0)
+		{
+			Bus_KdPrint(("No devices to report!\n"));
+			ExReleaseFastMutex(&fdoData->Mutex);
+			return STATUS_NO_SUCH_DEVICE;
+		}
+
+		// Test that the input id is legitimate
+		if (SerialNo < 1 || SerialNo >4)
+		{
+			Bus_KdPrint(("Wrong Device Number!\n"));
+			ExReleaseFastMutex(&fdoData->Mutex);
+			return STATUS_INVALID_DEVICE_REQUEST;
+		};
+
+		// find requested PDO
+		// If found then break
+		for (entry = fdoData->ListOfPDOs.Flink; entry != &fdoData->ListOfPDOs && !Found; entry = entry->Flink)
+		{
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+
+			if (SerialNo == pdoData->SerialNo)
+			{
+				Found = TRUE;
+				break;
+			}
+
+		}
+	}
+	ExReleaseFastMutex(&fdoData->Mutex);
+
+	// target device found
+	if (Found)
+	{
+		*Transfer = pdoData->CallingProcessId;
+		Bus_KdPrint(("Device %d is present (Process ID=%d)\n", SerialNo, pdoData->CallingProcessId));
+	}
+	else
+	{
+		*Transfer = 0;
+		Bus_KdPrint(("Device %d is NOT present\n", SerialNo));
+	}
+
+
+
+	return STATUS_SUCCESS;
+}
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Get number of empty slots in the Virtual Bus. </summary>
+///
+/// <remarks>	Shaul, 2.04.2016. </remarks>
+///
+/// <param name="fdoData"> 	Information describing the Functional Device Object. </param>
+/// <param name="Transfer">	The transfer buffer for the Output - points to number of empty slots. </param>
+///
+/// <returns>	A NTSTATUS. </returns>
+///-------------------------------------------------------------------------------------------------
+NTSTATUS Bus_GetNumberOfEmptySlots(PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
+{
+	PLIST_ENTRY         entry;
+	UCHAR				count = 4;
+	PPDO_DEVICE_DATA    pdoData = NULL;
+	BOOLEAN             Found = FALSE;
+
+
+	// lock device list
+	ExAcquireFastMutex(&fdoData->Mutex);
+	{
+		if (fdoData->NumPDOs == 0)
+		{
+			Bus_KdPrint(("No devices to report!\n"));
+			ExReleaseFastMutex(&fdoData->Mutex);
+
+			Transfer[0] = count;
+			return STATUS_SUCCESS;
+		}
+
+
+		// find requested PDO
+		// If found then break
+		for (entry = fdoData->ListOfPDOs.Flink; entry != &fdoData->ListOfPDOs && !Found; entry = entry->Flink)
+		{
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+			if (0 != pdoData->SerialNo)
+				count--;				
+
+		}
+	}
+	ExReleaseFastMutex(&fdoData->Mutex);
+	Transfer[0] = count;
+	return STATUS_SUCCESS;
 }

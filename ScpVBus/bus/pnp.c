@@ -43,7 +43,7 @@ NTSTATUS Bus_AddDevice(__in PDRIVER_OBJECT DriverObject, __in PDEVICE_OBJECT Phy
 
     UNREFERENCED_PARAMETER(nameLength);
     PAGED_CODE();
-
+	//KdBreakPoint();
     Bus_KdPrint(("Add Device: 0x%p\n", PhysicalDeviceObject));
 
     status = IoCreateDevice(DriverObject, sizeof(FDO_DEVICE_DATA), NULL, FILE_DEVICE_BUS_EXTENDER, FILE_DEVICE_SECURE_OPEN, TRUE, &deviceObject);
@@ -538,6 +538,7 @@ VOID Bus_InitializePdo(__drv_in(__drv_aliasesMem) PDEVICE_OBJECT Pdo, PFDO_DEVIC
 
     pdoData->IsFDO      = FALSE;
     pdoData->Self       = Pdo;
+	pdoData->CallingProcessId = 0;
 
     pdoData->ParentFdo = FdoData->Self;
 
@@ -574,6 +575,7 @@ NTSTATUS Bus_PlugInDevice(PBUSENUM_PLUGIN_HARDWARE PlugIn, ULONG PlugInSize, PFD
 	ULONG length;
 	BOOLEAN unique;
 	PLIST_ENTRY entry;
+	DWORD_PTR ProcessId;
 
 	PAGED_CODE();
 
@@ -635,6 +637,12 @@ NTSTATUS Bus_PlugInDevice(PBUSENUM_PLUGIN_HARDWARE PlugIn, ULONG PlugInSize, PFD
 	pdoData->SerialNo = PlugIn->SerialNo;
 	Bus_InitializePdo(pdo, FdoData);
 
+	// Get the id of the calling process
+	ProcessId = (DWORD_PTR)PsGetCurrentProcessId();
+	pdoData->CallingProcessId = (DWORD)(ProcessId & 0xFFFFFFFF);
+	Bus_KdPrint(("Process ID = 0x%d\n", pdoData->CallingProcessId));
+
+
 	IoInvalidateDeviceRelations(FdoData->UnderlyingPDO, BusRelations);
 	return status;
 }
@@ -677,6 +685,7 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
 			{
 				Bus_KdPrint(("Plugged out %d\n", pdoData->SerialNo));
 
+				pdoData->CallingProcessId = 0;
 				pdoData->Present = FALSE;
 				found = TRUE;
 

@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include <winioctl.h>
 #include "XOutput.h"
 #include <stdlib.h>
 #include <mutex>
@@ -316,6 +317,121 @@ DWORD XOutputUnPlugAll()
 	{
 		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 	}
+
+	return ERROR_SUCCESS;
+}
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Checks if a device is plugged in. </summary>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+///
+///  <param name="Exist">	Pointer to BOOL result: True if device exists. </param>
+///
+/// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+XOUTPUT_API DWORD XOutputIsCtrlExist(_In_    DWORD dwUserIndex,	_Out_ PBOOL Exist)
+{
+	ULONG buffer[1];
+	ULONG output[1];
+	DWORD trasfered = 0;
+
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	// Prepare the User Index for sending
+	buffer[0] = dwUserIndex;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_ISDEVPLUGGED, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
+	if (!retval)
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+
+	if (*output != 0)
+		*Exist = TRUE;
+	else
+		*Exist = FALSE;
+
+	return ERROR_SUCCESS;
+}
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Get the number of empty Virtual Bus slots. </summary>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+///
+///  <param name="Exist">	Pointer to Number of empty slots. </param>
+///
+/// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(_In_    DWORD  dwUserIndex,	_Out_	PUCHAR nSlots)
+
+{
+	UCHAR output[1];
+	DWORD trasfered = 0;
+
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_EMPTY_SLOTS, nullptr, 0, output, 1, &trasfered, nullptr);
+	if (!retval)
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+
+	*nSlots = *output;
+
+	return ERROR_SUCCESS;
+}
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Test if a device is owned by the calling process. </summary>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+///
+///  <param name="Owned">	Pointer to result. </param>
+///
+/// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+XOUTPUT_API DWORD XOutputIsCtrlOwned(_In_    DWORD dwUserIndex,	_Out_	PBOOL Owned)
+{
+	ULONG buffer[1];
+	ULONG output[1];
+	DWORD trasfered = 0;
+
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	// Prepare the User Index for sending
+	buffer[0] = dwUserIndex;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PROC_ID, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
+	if (!retval || *output == 0)
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+
+	// Process ID of creating process and of the current process
+	// Then compare them
+	DWORD OrigProcID = *output;
+	DWORD ThisProcID = GetCurrentProcessId();
+	if (ThisProcID == OrigProcID)
+		*Owned = TRUE;
+	else
+		*Owned = FALSE;
 
 	return ERROR_SUCCESS;
 }

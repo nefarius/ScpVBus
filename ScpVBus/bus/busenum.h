@@ -136,6 +136,13 @@ typedef struct _PDO_DEVICE_DATA {
 
 	UNICODE_STRING      InterfaceName;
 
+	// Every valid file object is associated with one device ID (id>0)
+	// (id < 1 is saved for other uses)
+	// Every device can be owned by at most one process	- CallingProcessId holds the ID of the calling process.
+	// Valid CallingProcessId>4
+	DWORD CallingProcessId;
+
+
 } PDO_DEVICE_DATA, *PPDO_DEVICE_DATA;
 
 typedef struct _FDO_DEVICE_DATA {
@@ -200,7 +207,9 @@ VOID Bus_IncIoCount(__in PFDO_DEVICE_DATA Data);
 VOID Bus_DecIoCount(__in PFDO_DEVICE_DATA Data);
 
 NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoData, PUCHAR pBuffer);
-
+NTSTATUS Bus_IsDevicePluggedIn(PVOID Report, PFDO_DEVICE_DATA fdoData, PUCHAR Transfer);
+NTSTATUS Bus_GetNumberOfEmptySlots(PFDO_DEVICE_DATA fdoData, PUCHAR Transfer);
+NTSTATUS Bus_GetDeviceCreateProcID(PVOID Report, PFDO_DEVICE_DATA fdoData, PULONG Transfer);
 __drv_dispatchType(IRP_MJ_SYSTEM_CONTROL)
 DRIVER_DISPATCH Bus_DispatchSystemControl;
 
