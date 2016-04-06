@@ -7,26 +7,28 @@
 #include <stdlib.h>
 #include <mutex>
 #include <SetupAPI.h>
+#include <IoCtrl.h>
 
 #define FEEDBACK_BUFFER_LENGTH 9
 static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
 std::once_flag initFlag;
 HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
+///-------------------------------------------------------------------------------------------------
 /// <summary>	Attempts to find and open the first instance of the virtual bus. </summary>
 ///
-/// <remarks>	Gets only called once. If no virtual bus is present, 
-/// 			all XOutput functions report ERROR_VBUS_NOT_CONNECTED. </remarks>
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <remarks>
+/// Gets only called once. If no virtual bus is present, all XOutput functions report
+/// ERROR_VBUS_NOT_CONNECTED.
+/// </remarks>
+///-------------------------------------------------------------------------------------------------
 void Initialize()
 {
 	std::call_once(initFlag, []()
 	{
 		SP_DEVICE_INTERFACE_DATA deviceInterfaceData = {};
 		deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
-		GUID deviceClassGuid = { 0xF679F562, 0x3164, 0x42CE,{ 0xA4, 0xDB, 0xE7 ,0xDD ,0xBE ,0x72 ,0x39 ,0x09 } };
+		GUID deviceClassGuid = { 0xF679F562, 0x3164, 0x42CE,{0xA4, 0xDB, 0xE7 ,0xDD ,0xBE ,0x72 ,0x39 ,0x09} };
 		DWORD memberIndex = 0;
 		DWORD requiredSize = 0;
 
@@ -324,15 +326,14 @@ DWORD XOutputUnPlugAll()
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Checks if a device is plugged in. </summary>
 ///
-/// <param name="dwUserIndex">	One-based index of the device. </param>
-///
-///  <param name="Exist">	Pointer to BOOL result: True if device exists. </param>
-///
 /// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+/// <param name="Exist">	  	Pointer to BOOL result: True if device exists. </param>
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-XOUTPUT_API DWORD XOutputIsCtrlExist(_In_    DWORD dwUserIndex,	_Out_ PBOOL Exist)
+DWORD XOutputIsCtrlExist(DWORD dwUserIndex, PBOOL Exist)
 {
 	ULONG buffer[1];
 	ULONG output[1];
@@ -363,16 +364,14 @@ XOUTPUT_API DWORD XOutputIsCtrlExist(_In_    DWORD dwUserIndex,	_Out_ PBOOL Exis
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Get the number of empty Virtual Bus slots. </summary>
 ///
-/// <param name="dwUserIndex">	One-based index of the device. </param>
-///
-///  <param name="Exist">	Pointer to Number of empty slots. </param>
-///
 /// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+/// <param name="nSlots">	  	Pointer to Number of empty slots. </param>
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(_In_    DWORD  dwUserIndex,	_Out_	PUCHAR nSlots)
-
+DWORD XOutputNumEmptyBusSlots(DWORD dwUserIndex, PUCHAR nSlots)
 {
 	UCHAR output[1];
 	DWORD trasfered = 0;
@@ -404,7 +403,7 @@ XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(_In_    DWORD  dwUserIndex,	_Out_	PUC
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-XOUTPUT_API DWORD XOutputIsCtrlOwned(_In_    DWORD dwUserIndex,	_Out_	PBOOL Owned)
+DWORD XOutputIsCtrlOwned(DWORD dwUserIndex, PBOOL Owned)
 {
 	ULONG buffer[1];
 	ULONG output[1];
@@ -435,3 +434,4 @@ XOUTPUT_API DWORD XOutputIsCtrlOwned(_In_    DWORD dwUserIndex,	_Out_	PBOOL Owne
 
 	return ERROR_SUCCESS;
 }
+

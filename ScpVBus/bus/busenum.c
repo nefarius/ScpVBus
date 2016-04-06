@@ -1,4 +1,5 @@
 #include "busenum.h"
+#include <IoCtrl.h>
 
 GLOBALS Globals;
 NPAGED_LOOKASIDE_LIST g_LookAside;
