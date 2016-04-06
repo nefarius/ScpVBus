@@ -49,17 +49,17 @@ extern "C"
 
 	XOUTPUT_API DWORD XOutputUnPlugAll();
 
-	XOUTPUT_API DWORD XOutputIsCtrlExist(
+	XOUTPUT_API DWORD XOutputIsPluggedIn(
 		_In_    DWORD dwUserIndex,
 		        _Out_	PBOOL Exist
 	);
 
-	XOUTPUT_API DWORD XOutputNumEmptyBusSlots(
+	XOUTPUT_API DWORD XOutputGetFreeSlots(
 		_In_    DWORD dwUserIndex,
 		        _Out_	PUCHAR nSlots
 	);
 
-	XOUTPUT_API DWORD XOutputIsCtrlOwned(
+	XOUTPUT_API DWORD XOutputIsOwned(
 		_In_    DWORD dwUserIndex,
 		        _Out_	PBOOL Owned
 	);

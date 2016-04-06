@@ -238,7 +238,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	buffer[6] = ((busIndex >> 16) & 0xFF);
 	buffer[8] = ((busIndex >> 24) & 0xFF);
 
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4000, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PLUGIN_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -282,7 +282,7 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	buffer[6] = ((busIndex >> 16) & 0xFF);
 	buffer[8] = ((busIndex >> 24) & 0xFF);
 
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -313,7 +313,7 @@ DWORD XOutputUnPlugAll()
 
 	buffer[0] = 0x10;
 
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -333,12 +333,8 @@ DWORD XOutputUnPlugAll()
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputIsCtrlExist(DWORD dwUserIndex, PBOOL Exist)
+DWORD XOutputIsPluggedIn(DWORD dwUserIndex, PBOOL Exist)
 {
-	ULONG buffer[1];
-	ULONG output[1];
-	DWORD trasfered = 0;
-
 	Initialize();
 
 	if (VBUS_NOT_INITIALIZED())
@@ -346,17 +342,29 @@ DWORD XOutputIsCtrlExist(DWORD dwUserIndex, PBOOL Exist)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
+	ULONG buffer[1] = {};
+	ULONG output[1] = {};
+	DWORD trasfered = 0;
+
 	// Prepare the User Index for sending
 	buffer[0] = dwUserIndex;
 
 	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_ISDEVPLUGGED, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
-	if (!retval)
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 
-	if (*output != 0)
-		*Exist = TRUE;
-	else
-		*Exist = FALSE;
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (Exist != nullptr)
+	{
+		*Exist = (*output != 0) ? TRUE : FALSE;
+	}
 
 	return ERROR_SUCCESS;
 }
@@ -371,11 +379,8 @@ DWORD XOutputIsCtrlExist(DWORD dwUserIndex, PBOOL Exist)
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputNumEmptyBusSlots(DWORD dwUserIndex, PUCHAR nSlots)
+DWORD XOutputGetFreeSlots(DWORD dwUserIndex, PUCHAR nSlots)
 {
-	UCHAR output[1];
-	DWORD trasfered = 0;
-
 	Initialize();
 
 	if (VBUS_NOT_INITIALIZED())
@@ -383,11 +388,25 @@ DWORD XOutputNumEmptyBusSlots(DWORD dwUserIndex, PUCHAR nSlots)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_EMPTY_SLOTS, nullptr, 0, output, 1, &trasfered, nullptr);
-	if (!retval)
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
 
-	*nSlots = *output;
+	UCHAR output[1] = {};
+	DWORD trasfered = 0;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_EMPTY_SLOTS, nullptr, 0, output, 1, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (nSlots != nullptr)
+	{
+		*nSlots = *output;
+	}
 
 	return ERROR_SUCCESS;
 }
@@ -403,12 +422,8 @@ DWORD XOutputNumEmptyBusSlots(DWORD dwUserIndex, PUCHAR nSlots)
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-DWORD XOutputIsCtrlOwned(DWORD dwUserIndex, PBOOL Owned)
+DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
 {
-	ULONG buffer[1];
-	ULONG output[1];
-	DWORD trasfered = 0;
-
 	Initialize();
 
 	if (VBUS_NOT_INITIALIZED())
@@ -416,21 +431,29 @@ DWORD XOutputIsCtrlOwned(DWORD dwUserIndex, PBOOL Owned)
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
+	ULONG buffer[1] = {};
+	ULONG output[1] = {};
+	DWORD trasfered = 0;
+
 	// Prepare the User Index for sending
 	buffer[0] = dwUserIndex;
 
 	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PROC_ID, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
-	if (!retval || *output == 0)
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 
-	// Process ID of creating process and of the current process
-	// Then compare them
-	DWORD OrigProcID = *output;
-	DWORD ThisProcID = GetCurrentProcessId();
-	if (ThisProcID == OrigProcID)
-		*Owned = TRUE;
-	else
-		*Owned = FALSE;
+	if (DEVICE_IO_CONTROL_FAILED(retval) || *output == 0)
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (Owned != nullptr)
+	{
+		*Owned = (GetCurrentProcessId() == *output) ? TRUE : FALSE;
+	}
 
 	return ERROR_SUCCESS;
 }
