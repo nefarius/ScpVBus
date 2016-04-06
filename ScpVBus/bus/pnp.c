@@ -649,7 +649,7 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
 {
     PLIST_ENTRY         entry;
     PPDO_DEVICE_DATA    pdoData;
-    BOOLEAN             found = FALSE, plugOutAll;
+    BOOLEAN             found = FALSE, plugOutAll, failed = FALSE;
 
     PAGED_CODE();
 
@@ -679,8 +679,16 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
 
             Bus_KdPrint(("Found device %d\n", pdoData->SerialNo));
 
+            // either unplug all or only the submitted serial
             if (plugOutAll || UnPlug->SerialNo == pdoData->SerialNo)
             {
+                // check device ownership
+                if (pdoData->CallingProcessId != CURRENT_PROCESS_ID())
+                {
+                    failed = TRUE;
+                    break;
+                }
+
                 Bus_KdPrint(("Plugged out %d\n", pdoData->SerialNo));
 
                 pdoData->CallingProcessId = 0;
@@ -692,6 +700,11 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
         }
     }
     ExReleaseFastMutex(&FdoData->Mutex);
+
+    if (failed)
+    {
+        return STATUS_ACCESS_DENIED;
+    }
 
     if (found)
     {
@@ -854,7 +867,7 @@ PCHAR DbgDeviceIDString(BUS_QUERY_ID_TYPE Type)
         return "BusQueryContainerID";
     default:
         return "UnKnown ID";
-    }
+}
 }
 
 #endif

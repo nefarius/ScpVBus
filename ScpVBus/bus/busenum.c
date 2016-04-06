@@ -1252,6 +1252,11 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
         int     Index;
         BOOLEAN Changed = FALSE;
 
+        if (pdoData->CallingProcessId != CURRENT_PROCESS_ID())
+        {
+            return STATUS_ACCESS_DENIED;
+        }
+
         // compare current report to last known report
         for (Index = 0; Index < REPORT_SIZE && !Changed; Index++)
         {
