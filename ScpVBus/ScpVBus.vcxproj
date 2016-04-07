@@ -120,43 +120,43 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
     <OutDir>$(SolutionDir)$(Platform)\$(ConfigurationName)\</OutDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(KM_IncludePath);$(ProjectDir)Inc;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk</IncludePath>
+    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk</IncludePath>
+    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk</IncludePath>
+    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
     <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
-    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk</IncludePath>
+    <IncludePath>$(ProjectDir);$(IncludePath);C:\WinDDK\7600.16385.1\inc\ddk;$(SolutionDir)Common</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
     <Link>
@@ -211,6 +211,7 @@
     <ClCompile Include="bus\power.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\IoCtrl.h" />
     <ClInclude Include="bus\busenum.h" />
     <ClInclude Include="bus\resource.h" />
     <ClInclude Include="inc\ScpVBus.h" />

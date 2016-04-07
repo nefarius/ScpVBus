@@ -15,23 +15,6 @@
 #define ERROR_VBUS_IOCTL_REQUEST_FAILED		0x90002
 #define ERROR_VBUS_INVALID_STATE_INFO		0x90003
 
-#define IOCTL_BUSENUM_BASE 0x801
-#define FILE_DEVICE_BUSENUM		FILE_DEVICE_BUS_EXTENDER
-#define BUSENUM_IOCTL(_index_)	CTL_CODE(FILE_DEVICE_BUSENUM, _index_, METHOD_BUFFERED, FILE_READ_DATA)
-#define BUSENUM_W_IOCTL(_index_)	CTL_CODE(FILE_DEVICE_BUSENUM, _index_, METHOD_BUFFERED, FILE_WRITE_DATA)
-#define BUSENUM_R_IOCTL(_index_)	CTL_CODE(FILE_DEVICE_BUSENUM, _index_, METHOD_BUFFERED, FILE_READ_DATA)
-#define BUSENUM_RW_IOCTL(_index_)	CTL_CODE(FILE_DEVICE_BUSENUM, _index_, METHOD_BUFFERED, FILE_WRITE_DATA | FILE_READ_DATA)
-
-#define IOCTL_BUSENUM_PLUGIN_HARDWARE	BUSENUM_IOCTL(0x0)
-#define IOCTL_BUSENUM_UNPLUG_HARDWARE	BUSENUM_IOCTL(0x1)
-#define IOCTL_BUSENUM_EJECT_HARDWARE	BUSENUM_IOCTL(0x2)
-#define IOCTL_BUSENUM_REPORT_HARDWARE	BUSENUM_IOCTL(0x3)
-
-
-#define IOCTL_BUSENUM_ISDEVPLUGGED	BUSENUM_RW_IOCTL(IOCTL_BUSENUM_BASE+0x100)
-#define IOCTL_BUSENUM_EMPTY_SLOTS	BUSENUM_RW_IOCTL(IOCTL_BUSENUM_BASE+0x101)
-#define IOCTL_BUSENUM_PROC_ID		BUSENUM_RW_IOCTL(IOCTL_BUSENUM_BASE+0x102)
-
 
 #ifdef __cplusplus
 extern "C"
@@ -39,11 +22,52 @@ extern "C"
 	// used by C++ source code
 #endif
 
+    ///-------------------------------------------------------------------------------------------------
+    /// <summary>   Sends state information to a connected virtual controller. </summary>
+    ///
+    /// <remarks>
+    /// This function fails if the supplied user index represents an unplugged device or a device
+    /// owned by another process.
+    /// </remarks>
+    ///
+    /// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+    /// <param name="pGamepad">     [in,out] Pointer to an XINPUT_GAMEPAD structure containing the
+    ///                             state information to send to the virtual controller. </param>
+    ///
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// 
+    /// If the function fails, the return value is an error code defined in XOutput.h. The function
+    /// does not use SetLastError to set the calling thread's last-error code.
+    /// </returns>
+    ///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputSetState(
 		_In_  DWORD dwUserIndex,
 		      _Out_ XINPUT_GAMEPAD* pGamepad
 	);
 
+    ///-------------------------------------------------------------------------------------------------
+    /// <summary>   Retrieves the current vibration state of the specified virtual controller. </summary>
+    ///
+    /// <remarks>
+    /// The values retrieved by this function are only updated after a preceding call of the
+    /// XOutputSetState function. This function fails if the supplied user index represents an
+    /// unplugged device or a device owned by another process.
+    /// </remarks>
+    ///
+    /// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+    /// <param name="bVibrate">     This value is set to 0x01 if vibration information is available,
+    ///                             otherwise it is set to 0x00. </param>
+    /// <param name="bLargeMotor">  The intensity of the large motor. </param>
+    /// <param name="bSmallMotor">  The intensity of the small motor. </param>
+    ///
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// 
+    /// If the function fails, the return value is an error code defined in XOutput.h. The function
+    /// does not use SetLastError to set the calling thread's last-error code.
+    /// </returns>
+    ///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputGetState(
 		_In_    DWORD dwUserIndex,
 		        _Out_ PBYTE bVibrate,
@@ -51,35 +75,106 @@ extern "C"
 		        _Out_ PBYTE bSmallMotor
 	);
 
+    ///-------------------------------------------------------------------------------------------------
+    /// <summary>
+    /// Retrieves the assigned XInput slot index of the specified virtual controller.
+    /// </summary>
+    ///
+    /// <remarks>
+    /// The device index used internally on the virtual bus does not reflect the index used by the
+    /// XInput API. The "real" index is based on the connection order of any XInput-compatible
+    /// controllers plugged into the system and can not be enforced. The values retrieved by this
+    /// function are only updated after a preceding call of the XOutputSetState function. This
+    /// function fails if the supplied user index represents an unplugged device or a device owned by
+    /// another process.
+    /// </remarks>
+    ///
+    /// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+    /// <param name="dwRealIndex">  [in,out] Pointer to a DWORD value receiving the assigned XInput
+    ///                             slot index. </param>
+    ///
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// 
+    /// If the function fails, the return value is an error code defined in XOutput.h. The function
+    /// does not use SetLastError to set the calling thread's last-error code.
+    /// </returns>
+    ///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputGetRealUserIndex(
 		_In_ DWORD dwUserIndex,
 		     _Out_ DWORD* dwRealIndex
 	);
 
+    ///-------------------------------------------------------------------------------------------------
+    /// <summary>   Requests the bus driver to attach a virtual controller. </summary>
+    ///
+    /// <remarks>
+    /// This function fails if the supplied user index represents an already plugged in device or a
+    /// device owned by another process.
+    /// </remarks>
+    ///
+    /// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+    ///
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// 
+    /// If the function fails, the return value is an error code defined in XOutput.h. The function
+    /// does not use SetLastError to set the calling thread's last-error code.
+    /// </returns>
+    ///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputPlugIn(
 		_In_ DWORD dwUserIndex
 	);
 
+    ///-------------------------------------------------------------------------------------------------
+    /// <summary>   Requests the bus driver to detach a virtual controller. </summary>
+    ///
+    /// <remarks>
+    /// This function fails if the supplied user index represents an unplugged device or a device
+    /// owned by another process.
+    /// </remarks>
+    ///
+    /// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+    ///
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// 
+    /// If the function fails, the return value is an error code defined in XOutput.h. The function
+    /// does not use SetLastError to set the calling thread's last-error code.
+    /// </returns>
+    ///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputUnPlug(
 		_In_ DWORD dwUserIndex
 	);
 
+    ///-------------------------------------------------------------------------------------------------
+    /// <summary>   Requests the bus driver to detach all owned virtual controllers. </summary>
+    ///
+    /// <remarks>   This function can not unplug devices owned by other processes. </remarks>
+    ///
+    /// <returns>
+    /// If the function succeeds, the return value is ERROR_SUCCESS.
+    /// 
+    /// If the function fails, the return value is an error code defined in XOutput.h. The function
+    /// does not use SetLastError to set the calling thread's last-error code.
+    /// </returns>
+    ///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputUnPlugAll();
 
-	XOUTPUT_API DWORD XOutputIsCtrlExist(
+	XOUTPUT_API DWORD XOutputIsPluggedIn(
 		_In_    DWORD dwUserIndex,
-		_Out_	PBOOL Exist
-		);
+		        _Out_	PBOOL Exist
+	);
 
-	XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(
-		_In_    DWORD  dwUserIndex,
-		_Out_	PUCHAR nSlots
-		);
-
-	XOUTPUT_API DWORD XOutputIsCtrlOwned(
+	XOUTPUT_API DWORD XOutputGetFreeSlots(
 		_In_    DWORD dwUserIndex,
-		_Out_	PBOOL Owned
-		);
+		        _Out_	PUCHAR nSlots
+	);
+
+	XOUTPUT_API DWORD XOutputIsOwned(
+		_In_    DWORD dwUserIndex,
+		        _Out_	PBOOL Owned
+	);
 
 #ifdef __cplusplus
 }

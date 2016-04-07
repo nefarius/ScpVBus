@@ -1,5 +1,23 @@
 #include "busenum.h"
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	DispatchPower routine. </summary>
+///
+/// <remarks>
+/// The DispatchPower routine services IRPs containing the IRP_MJ_POWER I/O function code.
+/// </remarks>
+///
+/// <param name="DeviceObject">	Caller-supplied pointer to a DEVICE_OBJECT structure. This is the
+/// 							device object for the target device, previously created by the
+/// 							driver's AddDevice routine. </param>
+/// <param name="Irp">		   	Caller-supplied pointer to an IRP structure that describes the
+/// 							requested I/O operation. </param>
+///
+/// <returns>
+/// If the routine succeeds, it must return STATUS_SUCCESS. Otherwise, it must return one of the
+/// error status values defined in Ntstatus.h.
+/// </returns>
+///-------------------------------------------------------------------------------------------------
 NTSTATUS Bus_Power(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 {
     PIO_STACK_LOCATION  irpStack;

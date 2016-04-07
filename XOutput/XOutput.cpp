@@ -7,26 +7,28 @@
 #include <stdlib.h>
 #include <mutex>
 #include <SetupAPI.h>
+#include <IoCtrl.h>
 
 #define FEEDBACK_BUFFER_LENGTH 9
 static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
 std::once_flag initFlag;
 HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
+///-------------------------------------------------------------------------------------------------
 /// <summary>	Attempts to find and open the first instance of the virtual bus. </summary>
 ///
-/// <remarks>	Gets only called once. If no virtual bus is present, 
-/// 			all XOutput functions report ERROR_VBUS_NOT_CONNECTED. </remarks>
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/// <remarks>
+/// Gets only called once. If no virtual bus is present, all XOutput functions report
+/// ERROR_VBUS_NOT_CONNECTED.
+/// </remarks>
+///-------------------------------------------------------------------------------------------------
 void Initialize()
 {
 	std::call_once(initFlag, []()
 	{
 		SP_DEVICE_INTERFACE_DATA deviceInterfaceData = {};
 		deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
-		GUID deviceClassGuid = { 0xF679F562, 0x3164, 0x42CE,{ 0xA4, 0xDB, 0xE7 ,0xDD ,0xBE ,0x72 ,0x39 ,0x09 } };
+		GUID deviceClassGuid = { 0xF679F562, 0x3164, 0x42CE,{0xA4, 0xDB, 0xE7 ,0xDD ,0xBE ,0x72 ,0x39 ,0x09} };
 		DWORD memberIndex = 0;
 		DWORD requiredSize = 0;
 
@@ -66,17 +68,6 @@ void Initialize()
 	});
 }
 
-
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output set state. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="pGamepad">	  	[in,out] If non-null, the state. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 {
 	Initialize();
@@ -130,18 +121,6 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output get state. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-/// <param name="bVibrate">   	Gets set to 0x01 if vibration is requested, 0x00 otherwise. </param>
-/// <param name="bLargeMotor">	If non-null, the large motor. </param>
-/// <param name="bSmallMotor">	If non-null, the small motor. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor)
 {
 	Initialize();
@@ -176,15 +155,6 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output get real user index. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 {
 	Initialize();
@@ -202,15 +172,6 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output plug in. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputPlugIn(DWORD dwUserIndex)
 {
 	Initialize();
@@ -236,7 +197,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	buffer[6] = ((busIndex >> 16) & 0xFF);
 	buffer[8] = ((busIndex >> 24) & 0xFF);
 
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4000, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PLUGIN_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -246,15 +207,6 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output un plug. </summary>
-///
-/// <remarks>	Benjamin, 15.03.2016. </remarks>
-///
-/// <param name="dwUserIndex">	Zero-based index of the user. </param>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputUnPlug(DWORD dwUserIndex)
 {
 	Initialize();
@@ -280,7 +232,7 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	buffer[6] = ((busIndex >> 16) & 0xFF);
 	buffer[8] = ((busIndex >> 24) & 0xFF);
 
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -290,13 +242,6 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	return ERROR_SUCCESS;
 }
 
-///-------------------------------------------------------------------------------------------------
-/// <summary>	Output un plug all. </summary>
-///
-/// <remarks>	Benjamin, 24.03.2016. </remarks>
-///
-/// <returns>	A DWORD. </returns>
-///-------------------------------------------------------------------------------------------------
 DWORD XOutputUnPlugAll()
 {
 	Initialize();
@@ -311,7 +256,7 @@ DWORD XOutputUnPlugAll()
 
 	buffer[0] = 0x10;
 
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A4004, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -324,20 +269,15 @@ DWORD XOutputUnPlugAll()
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Checks if a device is plugged in. </summary>
 ///
-/// <param name="dwUserIndex">	One-based index of the device. </param>
-///
-///  <param name="Exist">	Pointer to BOOL result: True if device exists. </param>
-///
 /// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+/// <param name="Exist">	  	Pointer to BOOL result: True if device exists. </param>
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-XOUTPUT_API DWORD XOutputIsCtrlExist(_In_    DWORD dwUserIndex,	_Out_ PBOOL Exist)
+DWORD XOutputIsPluggedIn(DWORD dwUserIndex, PBOOL Exist)
 {
-	ULONG buffer[1];
-	ULONG output[1];
-	DWORD trasfered = 0;
-
 	Initialize();
 
 	if (VBUS_NOT_INITIALIZED())
@@ -345,17 +285,29 @@ XOUTPUT_API DWORD XOutputIsCtrlExist(_In_    DWORD dwUserIndex,	_Out_ PBOOL Exis
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
+	ULONG buffer[1] = {};
+	ULONG output[1] = {};
+	DWORD trasfered = 0;
+
 	// Prepare the User Index for sending
 	buffer[0] = dwUserIndex;
 
 	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_ISDEVPLUGGED, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
-	if (!retval)
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 
-	if (*output != 0)
-		*Exist = TRUE;
-	else
-		*Exist = FALSE;
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (Exist != nullptr)
+	{
+		*Exist = (*output != 0) ? TRUE : FALSE;
+	}
 
 	return ERROR_SUCCESS;
 }
@@ -363,20 +315,15 @@ XOUTPUT_API DWORD XOutputIsCtrlExist(_In_    DWORD dwUserIndex,	_Out_ PBOOL Exis
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Get the number of empty Virtual Bus slots. </summary>
 ///
-/// <param name="dwUserIndex">	One-based index of the device. </param>
-///
-///  <param name="Exist">	Pointer to Number of empty slots. </param>
-///
 /// <remarks>	Shaul, 02.04.2016. </remarks>
+///
+/// <param name="dwUserIndex">	One-based index of the device. </param>
+/// <param name="nSlots">	  	Pointer to Number of empty slots. </param>
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(_In_    DWORD  dwUserIndex,	_Out_	PUCHAR nSlots)
-
+DWORD XOutputGetFreeSlots(DWORD dwUserIndex, PUCHAR nSlots)
 {
-	UCHAR output[1];
-	DWORD trasfered = 0;
-
 	Initialize();
 
 	if (VBUS_NOT_INITIALIZED())
@@ -384,11 +331,25 @@ XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(_In_    DWORD  dwUserIndex,	_Out_	PUC
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_EMPTY_SLOTS, nullptr, 0, output, 1, &trasfered, nullptr);
-	if (!retval)
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
 
-	*nSlots = *output;
+	UCHAR output[1] = {};
+	DWORD trasfered = 0;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_EMPTY_SLOTS, nullptr, 0, output, 1, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (nSlots != nullptr)
+	{
+		*nSlots = *output;
+	}
 
 	return ERROR_SUCCESS;
 }
@@ -404,12 +365,8 @@ XOUTPUT_API DWORD  XOutputNumEmptyBusSlots(_In_    DWORD  dwUserIndex,	_Out_	PUC
 ///
 /// <returns>	A DWORD. </returns>
 ///-------------------------------------------------------------------------------------------------
-XOUTPUT_API DWORD XOutputIsCtrlOwned(_In_    DWORD dwUserIndex,	_Out_	PBOOL Owned)
+DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
 {
-	ULONG buffer[1];
-	ULONG output[1];
-	DWORD trasfered = 0;
-
 	Initialize();
 
 	if (VBUS_NOT_INITIALIZED())
@@ -417,21 +374,30 @@ XOUTPUT_API DWORD XOutputIsCtrlOwned(_In_    DWORD dwUserIndex,	_Out_	PBOOL Owne
 		return ERROR_VBUS_NOT_CONNECTED;
 	}
 
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
+	ULONG buffer[1] = {};
+	ULONG output[1] = {};
+	DWORD trasfered = 0;
+
 	// Prepare the User Index for sending
 	buffer[0] = dwUserIndex;
 
 	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PROC_ID, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
-	if (!retval || *output == 0)
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
 
-	// Process ID of creating process and of the current process
-	// Then compare them
-	DWORD OrigProcID = *output;
-	DWORD ThisProcID = GetCurrentProcessId();
-	if (ThisProcID == OrigProcID)
-		*Owned = TRUE;
-	else
-		*Owned = FALSE;
+	if (DEVICE_IO_CONTROL_FAILED(retval) || *output == 0)
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (Owned != nullptr)
+	{
+		*Owned = (GetCurrentProcessId() == *output) ? TRUE : FALSE;
+	}
 
 	return ERROR_SUCCESS;
 }
+
