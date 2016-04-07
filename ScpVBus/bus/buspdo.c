@@ -167,7 +167,7 @@ NTSTATUS Bus_PDO_PnP(__in PDEVICE_OBJECT DeviceObject, __in PIRP Irp, __in PIO_S
 
     case IRP_MN_QUERY_DEVICE_RELATIONS:
 
-        Bus_KdPrint(("\tQueryDeviceRelation Type: %s\n", DbgDeviceRelationString(IrpStack->Parameters.QueryDeviceRelations.Type)));
+        Bus_KdPrint(("\tBuspdo.c: QueryDeviceRelation Type: %s\n", DbgDeviceRelationString(IrpStack->Parameters.QueryDeviceRelations.Type)));
 
         status = Bus_PDO_QueryDeviceRelations(DeviceData, Irp);
         break;
@@ -503,6 +503,9 @@ NTSTATUS Bus_PDO_QueryDeviceRelations(__in PPDO_DEVICE_DATA DeviceData, __in PIR
         deviceRelations->Count = 1;
         deviceRelations->Objects[0] = DeviceData->Self;
         ObReferenceObject(DeviceData->Self);
+
+		Bus_KdPrint(("Bus_PDO_QueryDeviceRelations : DeviceData->SerialNo = %d\n", DeviceData->SerialNo));
+		Bus_KdPrint(("Bus_PDO_QueryDeviceRelations : DeviceData->Present = %d\n", DeviceData->Present));
 
         status = STATUS_SUCCESS;
         Irp->IoStatus.Information = (ULONG_PTR) deviceRelations;

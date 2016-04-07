@@ -288,7 +288,7 @@ NTSTATUS Bus_FDO_PnP(__in PDEVICE_OBJECT DeviceObject, __in PIRP Irp, __in PIO_S
 
     case IRP_MN_QUERY_DEVICE_RELATIONS:
 
-        Bus_KdPrint(("\tQueryDeviceRelation Type: %s\n", DbgDeviceRelationString(IrpStack->Parameters.QueryDeviceRelations.Type)));
+        Bus_KdPrint(("\tPnp.c: QueryDeviceRelation Type: %s\n", DbgDeviceRelationString(IrpStack->Parameters.QueryDeviceRelations.Type)));
 
         if (IrpStack->Parameters.QueryDeviceRelations.Type != BusRelations)
 		{
