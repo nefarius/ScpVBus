@@ -208,7 +208,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	return ERROR_SUCCESS;
 }
 
-DWORD XOutputUnPlug(DWORD dwUserIndex)
+DWORD XOutputUnPlug_opt(_In_ DWORD dwUserIndex, _In_ BOOL  bForce)
 {
 	Initialize();
 
@@ -229,6 +229,50 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
 	buffer.SerialNo = busIndex ;
 
+	if (bForce)
+		buffer.Flags = 0x0001;
+	else
+ 		buffer.Flags = 0x0000;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, (LPVOID)(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	return ERROR_SUCCESS;
+}
+
+DWORD XOutputUnPlug(_In_ DWORD dwUserIndex)
+{
+	return  XOutputUnPlug_opt(dwUserIndex, FALSE);
+}
+
+DWORD XOutputUnPlugForce( _In_ DWORD dwUserIndex )
+{
+	return  XOutputUnPlug_opt(dwUserIndex, TRUE);
+}
+
+DWORD XOutputUnPlugAll_opt(BOOL bForce)
+{
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	DWORD trasfered = 0;
+	BUSENUM_UNPLUG_HARDWARE buffer = {};
+	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
+	buffer.SerialNo = 0;
+
+	if (bForce)
+		buffer.Flags = 0x0001;
+	else
+		buffer.Flags = 0x0000;
+
 	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, (LPVOID)(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
@@ -241,26 +285,12 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 
 DWORD XOutputUnPlugAll()
 {
-	Initialize();
+	return XOutputUnPlugAll_opt(FALSE);
+}
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return ERROR_VBUS_NOT_CONNECTED;
-	}
-
-	DWORD trasfered = 0;
-	BYTE buffer[16] = {};
-
-	buffer[0] = 0x10;
-
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
-
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
-	}
-
-	return ERROR_SUCCESS;
+DWORD XOutputUnPlugAllForce()
+{
+	return XOutputUnPlugAll_opt(TRUE);
 }
 
 ///-------------------------------------------------------------------------------------------------

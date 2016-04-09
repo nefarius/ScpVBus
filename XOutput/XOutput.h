@@ -126,40 +126,119 @@ extern "C"
 		_In_ DWORD dwUserIndex
 	);
 
-    ///-------------------------------------------------------------------------------------------------
-    /// <summary>   Requests the bus driver to detach a virtual controller. </summary>
-    ///
-    /// <remarks>
-    /// This function fails if the supplied user index represents an unplugged device or a device
-    /// owned by another process.
-    /// </remarks>
-    ///
-    /// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
-    ///
-    /// <returns>
-    /// If the function succeeds, the return value is ERROR_SUCCESS.
-    /// 
-    /// If the function fails, the return value is an error code defined in XOutput.h. The function
-    /// does not use SetLastError to set the calling thread's last-error code.
-    /// </returns>
-    ///-------------------------------------------------------------------------------------------------
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   Requests the bus driver to detach a virtual controller (Regular/Forced). </summary>
+	///
+	/// <remarks>
+	/// This function fails if the supplied user index represents an unplugged device.
+	/// The function has an option, Forced, to remove any device, even if plugged in by another process
+	/// Otherwize (If force option is not set) it fails to remove a device if plugged in by another process
+	/// </remarks>
+	///
+	/// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+	///
+	/// <param name="bForce">  Set/Reset  Force option </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	DWORD XOutputUnPlug_opt(
+		_In_ DWORD dwUserIndex,
+		_In_ BOOL  bForce
+		);
+	
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   Requests the bus driver to detach a virtual controller. </summary>
+	///
+	/// <remarks>
+	/// This function fails if the supplied user index represents an unplugged device or a device
+	/// owned by another process.
+	/// </remarks>
+	///
+	/// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputUnPlug(
 		_In_ DWORD dwUserIndex
-	);
+		);
 
-    ///-------------------------------------------------------------------------------------------------
-    /// <summary>   Requests the bus driver to detach all owned virtual controllers. </summary>
-    ///
-    /// <remarks>   This function can not unplug devices owned by other processes. </remarks>
-    ///
-    /// <returns>
-    /// If the function succeeds, the return value is ERROR_SUCCESS.
-    /// 
-    /// If the function fails, the return value is an error code defined in XOutput.h. The function
-    /// does not use SetLastError to set the calling thread's last-error code.
-    /// </returns>
-    ///-------------------------------------------------------------------------------------------------
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   Requests the bus driver to detach a virtual controller. </summary>
+	///
+	/// <remarks>
+	/// This function fails if the supplied user index represents an unplugged device.
+	/// This function can remove a device owned by another process.
+	/// </remarks>
+	///
+	/// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	XOUTPUT_API DWORD XOutputUnPlugForce(
+		_In_ DWORD dwUserIndex
+		);
+
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   Requests the bus driver to detach all owned virtual controllers. </summary>
+	///
+	/// <remarks>   This function can unplug devices owned by other processes depending on the value of bForce. </remarks>
+	///
+	/// <param name="bForce">  Set/Reset  Force option </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	DWORD XOutputUnPlugAll_opt(
+		_In_ BOOL bForce
+		);
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   Requests the bus driver to detach all owned virtual controllers. </summary>
+	///
+	/// <remarks>   This function can not unplug devices owned by other processes. </remarks>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputUnPlugAll();
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   Requests the bus driver to detach all owned virtual controllers. </summary>
+	///
+	/// <remarks>   This function CAN unplug devices owned by other processes. </remarks>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	XOUTPUT_API DWORD XOutputUnPlugAllForce();
 
 	XOUTPUT_API DWORD XOutputIsPluggedIn(
 		_In_    DWORD dwUserIndex,
