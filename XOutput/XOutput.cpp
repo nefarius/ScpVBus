@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include <winioctl.h>
 #include "XOutput.h"
+#include "..\ScpVBus\inc\ScpVBus.h"
 #include <stdlib.h>
 #include <mutex>
 #include <SetupAPI.h>
@@ -222,17 +223,13 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	}
 
 	DWORD trasfered = 0;
-	BYTE buffer[16] = {};
+	BUSENUM_UNPLUG_HARDWARE buffer = {};
 	auto busIndex = dwUserIndex + 1;
 
-	buffer[0] = 0x10;
+	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
+	buffer.SerialNo = busIndex ;
 
-	buffer[4] = ((busIndex >> 0) & 0xFF);
-	buffer[5] = ((busIndex >> 8) & 0xFF);
-	buffer[6] = ((busIndex >> 16) & 0xFF);
-	buffer[8] = ((busIndex >> 24) & 0xFF);
-
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, (LPVOID)(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
