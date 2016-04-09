@@ -1,0 +1,59 @@
+// Tester.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include "..\XOutput.h"
+
+#pragma comment(lib, "XOutput1_2")
+
+
+int main()
+{
+	DWORD result;
+	printf("Testing Module XOutput\n\n");
+
+
+	result = XOutputUnPlugAll();
+	printf("XOutputUnPlugAll(): Return 0x%x\n", result);
+
+	printf("Hit any key toXOutputUnPlugAllForce()\n\n");
+	getchar();
+
+	result = XOutputUnPlugAllForce();
+	printf("XOutputUnPlugAllForce(): Return 0x%x\n", result);
+
+	result = XOutputUnPlug(0);
+	printf("XOutputUnPlug(0): Return 0x%x\n", result);
+
+	printf("Hit any key to XOutputUnPlugForce(0)\n\n");
+	getchar();
+
+	result = XOutputUnPlugForce(0);
+	printf("XOutputUnPlugForce(0): Return 0x%x\n", result);
+
+	result = XOutputUnPlug(1);
+	printf("XOutputUnPlug(1): Return 0x%x\n", result);
+
+	result = XOutputUnPlug(2);
+	printf("XOutputUnPlug(2): Return 0x%x\n", result);
+
+	result = XOutputUnPlug(3);
+	printf("XOutputUnPlug(3): Return 0x%x\n", result);
+
+	result = XOutputUnPlug(4);
+	printf("XOutputUnPlug(4): Return 0x%x\n", result);
+
+	printf("Hit any key to plug in devices 0+2\n\n");
+	getchar();
+
+	result = XOutputPlugIn(0);
+	printf("XOutputPlugIn(0): Return 0x%x\n", result);
+	result = XOutputPlugIn(2);
+	printf("XOutputPlugIn(2): Return 0x%x\n", result);
+
+	printf("Hit any key to continue\n\n");
+	getchar();
+
+    return 0;
+}
+
