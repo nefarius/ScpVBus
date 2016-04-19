@@ -197,6 +197,9 @@ __drv_dispatchType(IRP_MJ_CREATE)
 __drv_dispatchType(IRP_MJ_CLOSE)
 DRIVER_DISPATCH Bus_CreateClose;
 
+__drv_dispatchType(IRP_MJ_CLEANUP)
+DRIVER_DISPATCH Bus_CleanUp;
+
 __drv_dispatchType(IRP_MJ_DEVICE_CONTROL)
 DRIVER_DISPATCH Bus_IoCtl;
 
