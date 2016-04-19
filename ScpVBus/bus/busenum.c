@@ -1313,7 +1313,7 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
         for (Index = 0; Index < RUMBLE_SIZE; Index++)
         {
             Transfer[Index] = pdoData->Rumble[Index];
-            pdoData->Rumble[Index] = 0;
+            //pdoData->Rumble[Index] = 0;
         }
 
         // pass back current LED number for this PDO
