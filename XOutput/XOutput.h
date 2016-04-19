@@ -56,11 +56,12 @@ extern "C"
     /// </remarks>
     ///
     /// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
-    /// <param name="bVibrate">     This value is set to 0x01 if vibration information is available,
+    /// <param name="bVibrate">     This value is set to non-zero if vibration information is available,
     ///                             otherwise it is set to 0x00. </param>
-    /// <param name="bLargeMotor">  The intensity of the large motor. </param>
-    /// <param name="bSmallMotor">  The intensity of the small motor. </param>
-    ///
+    /// <param name="bLargeMotor">  The intensity of the large motor (0-255). </param>
+	/// <param name="bSmallMotor">  The intensity of the small motor (0-255). </param>
+	/// <param name="bLed">			The LED that represent this device (0-3). </param>
+	///
     /// <returns>
     /// If the function succeeds, the return value is ERROR_SUCCESS.
     /// 
@@ -72,7 +73,8 @@ extern "C"
 		_In_    DWORD dwUserIndex,
 		        _Out_ PBYTE bVibrate,
 		        _Out_ PBYTE bLargeMotor,
-		        _Out_ PBYTE bSmallMotor
+		        _Out_ PBYTE bSmallMotor,
+				_Out_ PBYTE bLed
 	);
 
     ///-------------------------------------------------------------------------------------------------

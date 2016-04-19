@@ -221,3 +221,5 @@ ScpVBus/bus/objchk_wlh_amd64/amd64/busenum.res
 devcon.exe
 vXboxInstall/vXboxInstall.h
 *.rej
+*.opendb
+*.db

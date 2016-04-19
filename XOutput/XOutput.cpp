@@ -109,7 +109,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
 
 	// send report to bus, receive vibration and LED status
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_REPORT_HARDWARE, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -122,7 +122,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	return ERROR_SUCCESS;
 }
 
-DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor)
+DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor, PBYTE bLed)
 {
 	Initialize();
 
@@ -151,6 +151,11 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 	if (bSmallMotor != nullptr)
 	{
 		*bSmallMotor = pad[4];
+	}
+
+	if (bLed != nullptr)
+	{
+		*bLed = pad[8];
 	}
 
 	return ERROR_SUCCESS;

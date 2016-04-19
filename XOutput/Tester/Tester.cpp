@@ -46,13 +46,22 @@ int main()
 	printf("Hit any key to plug in devices 0+2\n\n");
 	getchar();
 
-	result = XOutputPlugIn(0);
-	printf("XOutputPlugIn(0): Return 0x%x\n", result);
 	result = XOutputPlugIn(2);
 	printf("XOutputPlugIn(2): Return 0x%x\n", result);
+	result = XOutputPlugIn(0);
+	printf("XOutputPlugIn(0): Return 0x%x\n", result);
 
 	printf("Hit any key to continue\n\n");
 	getchar();
+
+	XINPUT_GAMEPAD 	Gamepad = { 0 };
+	Gamepad.wButtons = 0x1;
+	XOutputSetState(2, &Gamepad);
+	XOutputSetState(0, &Gamepad);
+
+	BYTE bVibrate[4], bLargeMotor[4], bSmallMotor[4], bLed[4];
+	XOutputGetState(0, &(bVibrate[0]), &(bLargeMotor[0]), &(bSmallMotor[0]), &(bLed[0]));
+	XOutputGetState(2, &(bVibrate[2]), &(bLargeMotor[2]), &(bSmallMotor[2]), &(bLed[2]));
 
     return 0;
 }
