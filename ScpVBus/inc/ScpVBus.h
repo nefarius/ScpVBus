@@ -26,9 +26,11 @@ typedef struct _BUSENUM_UNPLUG_HARDWARE {
 
     __in ULONG Size;                                    
 
-    __in ULONG SerialNo;
-    
-    ULONG Reserved[2];    
+	__in ULONG SerialNo;
+
+	__in ULONG Flags;
+
+    ULONG Reserved[1];    
 
 } BUSENUM_UNPLUG_HARDWARE, *PBUSENUM_UNPLUG_HARDWARE;
 

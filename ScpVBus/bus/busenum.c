@@ -8,6 +8,7 @@ NPAGED_LOOKASIDE_LIST g_LookAside;
 #pragma alloc_text(INIT, DriverEntry)
 #pragma alloc_text(PAGE, Bus_DriverUnload)
 #pragma alloc_text(PAGE, Bus_CreateClose)
+#pragma alloc_text(PAGE, Bus_CleanUp)
 #pragma alloc_text(PAGE, Bus_DispatchSystemControl)
 #endif
 
@@ -50,7 +51,8 @@ NTSTATUS DriverEntry(__in PDRIVER_OBJECT DriverObject, __in PUNICODE_STRING Regi
     DriverObject->MajorFunction[IRP_MJ_POWER] = Bus_Power;
     DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = Bus_IoCtl;
     DriverObject->MajorFunction[IRP_MJ_INTERNAL_DEVICE_CONTROL] = Bus_Internal_IoCtl;
-    DriverObject->MajorFunction[IRP_MJ_SYSTEM_CONTROL] = Bus_DispatchSystemControl;
+	DriverObject->MajorFunction[IRP_MJ_SYSTEM_CONTROL] = Bus_DispatchSystemControl;
+	DriverObject->MajorFunction[IRP_MJ_CLEANUP] = Bus_CleanUp;
 
     DriverObject->DriverUnload = Bus_DriverUnload;
     DriverObject->DriverExtension->AddDevice = Bus_AddDevice;
@@ -192,6 +194,67 @@ NTSTATUS Bus_CreateClose(PDEVICE_OBJECT DeviceObject, PIRP Irp)
     Bus_DecIoCount(fdoData);
 
     return status;
+}
+
+NTSTATUS Bus_CleanUp(PDEVICE_OBJECT DeviceObject, PIRP Irp)
+{
+	NTSTATUS            status = STATUS_SUCCESS;
+	DWORD				CurrentProcId = 0, CreateProcId = 0;
+	BOOLEAN				IsFDO, found=FALSE;
+	PCOMMON_DEVICE_DATA	commonData;
+	PPDO_DEVICE_DATA	pdoData;
+	PFDO_DEVICE_DATA	fdoData;
+	PLIST_ENTRY			entry;
+
+	PAGED_CODE();
+	Bus_KdPrint(("Cleanup \n"));
+
+	// Check if this is FDO
+	commonData = (PCOMMON_DEVICE_DATA)DeviceObject->DeviceExtension;
+	IsFDO = commonData->IsFDO;
+
+	// If this is FDO start releasing PDOs (if Process is the same one as the one created the PDO)
+	if (IsFDO)
+	{
+		// Get the FDO data and acquire the mutex
+		fdoData = (PFDO_DEVICE_DATA)DeviceObject->DeviceExtension;
+		ExAcquireFastMutex(&fdoData->Mutex);
+
+		// Get the ID of the current process
+		CurrentProcId = CURRENT_PROCESS_ID();
+
+		// Loop on all PDOs (devices) belonging to this FDO
+		for (entry = fdoData->ListOfPDOs.Flink; entry != &fdoData->ListOfPDOs ; entry = entry->Flink)
+		{
+			// Get the PDO data and from it extract the ID of the process that created the PDO
+			pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
+			CreateProcId = pdoData->CallingProcessId;
+
+			// If this proces is the same process that created the PDO
+			// Then mark the PDO for removal
+			if (CreateProcId == CurrentProcId)
+			{
+				Bus_KdPrint(("Plugged out %d\n", pdoData->SerialNo));
+				pdoData->CallingProcessId = 0;
+				pdoData->Present = FALSE;
+				found = TRUE;
+			}
+		}
+
+		ExReleaseFastMutex(&fdoData->Mutex);
+
+		// If there was at least one matching PDO then invalidate device structure
+		if (found)
+			IoInvalidateDeviceRelations(fdoData->UnderlyingPDO, BusRelations);
+	}
+
+	// Complete Request
+	Irp->IoStatus.Information = 0;
+	Irp->IoStatus.Status = status;
+	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+	return status;
+
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -1313,7 +1376,7 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
         for (Index = 0; Index < RUMBLE_SIZE; Index++)
         {
             Transfer[Index] = pdoData->Rumble[Index];
-            pdoData->Rumble[Index] = 0;
+            //pdoData->Rumble[Index] = 0;
         }
 
         // pass back current LED number for this PDO

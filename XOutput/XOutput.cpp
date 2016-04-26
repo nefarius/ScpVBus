@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include <winioctl.h>
 #include "XOutput.h"
+#include "..\ScpVBus\inc\ScpVBus.h"
 #include <stdlib.h>
 #include <mutex>
 #include <SetupAPI.h>
@@ -108,7 +109,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
 
 	// send report to bus, receive vibration and LED status
-	auto retval = DeviceIoControl(g_hScpVBus, 0x2A400C, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_REPORT_HARDWARE, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -121,7 +122,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 	return ERROR_SUCCESS;
 }
 
-DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor)
+DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor, PBYTE bLed)
 {
 	Initialize();
 
@@ -150,6 +151,11 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 	if (bSmallMotor != nullptr)
 	{
 		*bSmallMotor = pad[4];
+	}
+
+	if (bLed != nullptr)
+	{
+		*bLed = pad[8];
 	}
 
 	return ERROR_SUCCESS;
@@ -207,7 +213,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 	return ERROR_SUCCESS;
 }
 
-DWORD XOutputUnPlug(DWORD dwUserIndex)
+DWORD XOutputUnPlug_opt(_In_ DWORD dwUserIndex, _In_ BOOL  bForce)
 {
 	Initialize();
 
@@ -222,17 +228,57 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 	}
 
 	DWORD trasfered = 0;
-	BYTE buffer[16] = {};
+	BUSENUM_UNPLUG_HARDWARE buffer = {};
 	auto busIndex = dwUserIndex + 1;
 
-	buffer[0] = 0x10;
+	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
+	buffer.SerialNo = busIndex ;
 
-	buffer[4] = ((busIndex >> 0) & 0xFF);
-	buffer[5] = ((busIndex >> 8) & 0xFF);
-	buffer[6] = ((busIndex >> 16) & 0xFF);
-	buffer[8] = ((busIndex >> 24) & 0xFF);
+	if (bForce)
+		buffer.Flags = 0x0001;
+	else
+ 		buffer.Flags = 0x0000;
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, (LPVOID)(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	return ERROR_SUCCESS;
+}
+
+DWORD XOutputUnPlug(_In_ DWORD dwUserIndex)
+{
+	return  XOutputUnPlug_opt(dwUserIndex, FALSE);
+}
+
+DWORD XOutputUnPlugForce( _In_ DWORD dwUserIndex )
+{
+	return  XOutputUnPlug_opt(dwUserIndex, TRUE);
+}
+
+DWORD XOutputUnPlugAll_opt(BOOL bForce)
+{
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	DWORD trasfered = 0;
+	BUSENUM_UNPLUG_HARDWARE buffer = {};
+	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
+	buffer.SerialNo = 0;
+
+	if (bForce)
+		buffer.Flags = 0x0001;
+	else
+		buffer.Flags = 0x0000;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, (LPVOID)(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
@@ -244,26 +290,12 @@ DWORD XOutputUnPlug(DWORD dwUserIndex)
 
 DWORD XOutputUnPlugAll()
 {
-	Initialize();
+	return XOutputUnPlugAll_opt(FALSE);
+}
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return ERROR_VBUS_NOT_CONNECTED;
-	}
-
-	DWORD trasfered = 0;
-	BYTE buffer[16] = {};
-
-	buffer[0] = 0x10;
-
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
-
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
-	}
-
-	return ERROR_SUCCESS;
+DWORD XOutputUnPlugAllForce()
+{
+	return XOutputUnPlugAll_opt(TRUE);
 }
 
 ///-------------------------------------------------------------------------------------------------

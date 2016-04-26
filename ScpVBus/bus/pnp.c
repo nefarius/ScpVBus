@@ -325,7 +325,7 @@ NTSTATUS Bus_FDO_PnP(__in PDEVICE_OBJECT DeviceObject, __in PIRP Irp, __in PIO_S
 
     case IRP_MN_QUERY_DEVICE_RELATIONS:
 
-        Bus_KdPrint(("\tQueryDeviceRelation Type: %s\n", DbgDeviceRelationString(IrpStack->Parameters.QueryDeviceRelations.Type)));
+        Bus_KdPrint(("\tPnp.c: QueryDeviceRelation Type: %s\n", DbgDeviceRelationString(IrpStack->Parameters.QueryDeviceRelations.Type)));
 
         if (IrpStack->Parameters.QueryDeviceRelations.Type != BusRelations)
         {
@@ -431,9 +431,19 @@ NTSTATUS Bus_StartFdo(__in PFDO_DEVICE_DATA FdoData, __in PIRP Irp)
 {
     NTSTATUS status;
     POWER_STATE powerState;
+	PWSTR  pSymbolicNameList;
 
     UNREFERENCED_PARAMETER(Irp);
     PAGED_CODE();
+
+	//// Test that there isn't another such bus
+	status = IoGetDeviceInterfaces(&GUID_DEVINTERFACE_SCPVBUS, NULL, 0/*DEVICE_INTERFACE_INCLUDE_NONACTIVE*/, &pSymbolicNameList);
+	if (0 != *pSymbolicNameList)
+	{
+		Bus_KdPrint(("Add Device (bus): Already exists\n"));
+		status = STATUS_NO_SUCH_DEVICE;
+		return status;
+	}
 
     status = IoSetDeviceInterfaceState(&FdoData->InterfaceName, TRUE);
 
@@ -649,11 +659,14 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
 {
     PLIST_ENTRY         entry;
     PPDO_DEVICE_DATA    pdoData;
-    BOOLEAN             found = FALSE, plugOutAll, failed = FALSE;
+    BOOLEAN             found = FALSE, plugOutAll, force = FALSE;
 
     PAGED_CODE();
 
     plugOutAll = (UnPlug->SerialNo == 0);
+
+	// Flags[0]: Force bit
+	force = UnPlug->Flags & 0x0001;
 
     ExAcquireFastMutex(&FdoData->Mutex);
     {
@@ -673,8 +686,10 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
             return STATUS_NO_SUCH_DEVICE;
         }
 
+		// Loop on all devices: 
         for (entry = FdoData->ListOfPDOs.Flink; entry != &FdoData->ListOfPDOs; entry = entry->Flink)
         {
+			// Get data for current device
             pdoData = CONTAINING_RECORD(entry, PDO_DEVICE_DATA, Link);
 
             Bus_KdPrint(("Found device %d\n", pdoData->SerialNo));
@@ -682,29 +697,22 @@ NTSTATUS Bus_UnPlugDevice(PBUSENUM_UNPLUG_HARDWARE UnPlug, PFDO_DEVICE_DATA FdoD
             // either unplug all or only the submitted serial
             if (plugOutAll || UnPlug->SerialNo == pdoData->SerialNo)
             {
-                // check device ownership
-                if (pdoData->CallingProcessId != CURRENT_PROCESS_ID())
-                {
-                    failed = TRUE;
-                    break;
-                }
+				// Unplug device if device is owned or if this is a forced removal
+				if ((pdoData->CallingProcessId == CURRENT_PROCESS_ID()) || force)
+				{
+					Bus_KdPrint(("Plugged out %d\n", pdoData->SerialNo));
+					pdoData->CallingProcessId = 0;
+					pdoData->Present = FALSE;
+					found = TRUE;
 
-                Bus_KdPrint(("Plugged out %d\n", pdoData->SerialNo));
-
-                pdoData->CallingProcessId = 0;
-                pdoData->Present = FALSE;
-                found = TRUE;
-
-                if (!plugOutAll) break;
-            }
+					// If this is an Unplug All then go to the next device
+					// Else exit loop
+					if (!plugOutAll) break;
+				}
+			}
         }
     }
     ExReleaseFastMutex(&FdoData->Mutex);
-
-    if (failed)
-    {
-        return STATUS_ACCESS_DENIED;
-    }
 
     if (found)
     {
