@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "..\XOutput.h"
 
-#pragma comment(lib, "XOutput1_1")
-
 
 int main()
 {

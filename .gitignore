@@ -223,3 +223,8 @@ vXboxInstall/vXboxInstall.h
 *.rej
 *.opendb
 *.db
+/ScpVBus/sdv-user.sdv
+/ScpVBus/sdv-map.h
+/ScpVBus/SDV-default.xml
+/ScpVBus/sdv
+/ScpVBus/runsdvui.cmd
