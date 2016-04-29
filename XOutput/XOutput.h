@@ -10,12 +10,18 @@
 #endif
 #endif
 
-#define ERROR_VBUS_NOT_CONNECTED			0x90000
-#define ERROR_VBUS_INDEX_OUT_OF_RANGE		0x90001
-#define ERROR_VBUS_IOCTL_REQUEST_FAILED		0x90002
-#define ERROR_VBUS_INVALID_STATE_INFO		0x90003
+/// 
+/// XOutput error codes
+/// 
+#define XOUTPUT_VBUS_NOT_CONNECTED          0x90000
+#define XOUTPUT_VBUS_INDEX_OUT_OF_RANGE     0x90001
+#define XOUTPUT_VBUS_IOCTL_REQUEST_FAILED   0x90002
+#define XOUTPUT_VBUS_INVALID_STATE_INFO     0x90003
 
 
+/// 
+/// XOutput API
+/// 
 #ifdef __cplusplus
 extern "C"
 { // only need to export C interface if

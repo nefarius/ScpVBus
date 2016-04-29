@@ -20,7 +20,7 @@ HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
 ///
 /// <remarks>
 /// Gets only called once. If no virtual bus is present, all XOutput functions report
-/// ERROR_VBUS_NOT_CONNECTED.
+/// XOUTPUT_VBUS_NOT_CONNECTED.
 /// </remarks>
 ///-------------------------------------------------------------------------------------------------
 void Initialize()
@@ -75,17 +75,17 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
-		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	if (pGamepad == nullptr)
 	{
-		return ERROR_VBUS_INVALID_STATE_INFO;
+		return XOUTPUT_VBUS_INVALID_STATE_INFO;
 	}
 
 	DWORD trasfered = 0;
@@ -113,7 +113,7 @@ DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	// cache feedback
@@ -128,12 +128,12 @@ DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYT
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
-		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	auto pad = g_Feedback[dwUserIndex];
@@ -167,7 +167,7 @@ DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (dwRealIndex != nullptr)
@@ -184,12 +184,12 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
-		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	DWORD trasfered = 0;
@@ -207,7 +207,7 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	return ERROR_SUCCESS;
@@ -219,12 +219,12 @@ DWORD XOutputUnPlug_opt(_In_ DWORD dwUserIndex, _In_ BOOL  bForce)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
-		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	DWORD trasfered = 0;
@@ -243,7 +243,7 @@ DWORD XOutputUnPlug_opt(_In_ DWORD dwUserIndex, _In_ BOOL  bForce)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	return ERROR_SUCCESS;
@@ -265,7 +265,7 @@ DWORD XOutputUnPlugAll_opt(BOOL bForce)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	DWORD trasfered = 0;
@@ -282,7 +282,7 @@ DWORD XOutputUnPlugAll_opt(BOOL bForce)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	return ERROR_SUCCESS;
@@ -314,12 +314,12 @@ DWORD XOutputIsPluggedIn(DWORD dwUserIndex, PBOOL Exist)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
-		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	ULONG buffer[1] = {};
@@ -333,7 +333,7 @@ DWORD XOutputIsPluggedIn(DWORD dwUserIndex, PBOOL Exist)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	if (Exist != nullptr)
@@ -360,12 +360,12 @@ DWORD XOutputGetFreeSlots(DWORD dwUserIndex, PUCHAR nSlots)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
-		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	UCHAR output[1] = {};
@@ -375,7 +375,7 @@ DWORD XOutputGetFreeSlots(DWORD dwUserIndex, PUCHAR nSlots)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	if (nSlots != nullptr)
@@ -403,12 +403,12 @@ DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
 	{
-		return ERROR_VBUS_INDEX_OUT_OF_RANGE;
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
 	}
 
 	ULONG buffer[1] = {};
@@ -422,7 +422,7 @@ DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval) || *output == 0)
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	if (Owned != nullptr)
