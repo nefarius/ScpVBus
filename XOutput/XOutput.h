@@ -1,5 +1,17 @@
+/***************************************************************************
+*                                                                          *
+*   XInput.h -- This module defines Xbox 360 Virtual Controller APIs       *
+*               and constants for the Windows platform.                    *
+*                                                                          *
+*   Copyright (c) Benjamin Höglinger, Shaul Eizikovich                     *
+*                                                                          *
+***************************************************************************/
+
+#ifdef _MSC_VER
 #pragma once
-#include "stdafx.h"
+#endif
+
+#include <Windows.h>
 #include <Xinput.h>
 
 #ifndef DLL_EXPORT
