@@ -26,276 +26,276 @@ HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
 ///-------------------------------------------------------------------------------------------------
 void Initialize()
 {
-	std::call_once(initFlag, []()
-	{
-		SP_DEVICE_INTERFACE_DATA deviceInterfaceData = {};
-		deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
-		DWORD memberIndex = 0;
-		DWORD requiredSize = 0;
+    std::call_once(initFlag, []()
+    {
+        SP_DEVICE_INTERFACE_DATA deviceInterfaceData = {};
+        deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
+        DWORD memberIndex = 0;
+        DWORD requiredSize = 0;
 
-		auto deviceInfoSet = SetupDiGetClassDevs(&GUID_DEVINTERFACE_SCPVBUS, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+        auto deviceInfoSet = SetupDiGetClassDevs(&GUID_DEVINTERFACE_SCPVBUS, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 
-		while (SetupDiEnumDeviceInterfaces(deviceInfoSet, nullptr, &GUID_DEVINTERFACE_SCPVBUS, memberIndex, &deviceInterfaceData))
-		{
-			// get required target buffer size
-			SetupDiGetDeviceInterfaceDetail(deviceInfoSet, &deviceInterfaceData, nullptr, 0, &requiredSize, nullptr);
+        while (SetupDiEnumDeviceInterfaces(deviceInfoSet, nullptr, &GUID_DEVINTERFACE_SCPVBUS, memberIndex, &deviceInterfaceData))
+        {
+            // get required target buffer size
+            SetupDiGetDeviceInterfaceDetail(deviceInfoSet, &deviceInterfaceData, nullptr, 0, &requiredSize, nullptr);
 
-			// allocate target buffer
-			auto detailDataBuffer = static_cast<PSP_DEVICE_INTERFACE_DETAIL_DATA>(malloc(requiredSize));
-			detailDataBuffer->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+            // allocate target buffer
+            auto detailDataBuffer = static_cast<PSP_DEVICE_INTERFACE_DETAIL_DATA>(malloc(requiredSize));
+            detailDataBuffer->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
-			// get detail buffer
-			if (!SetupDiGetDeviceInterfaceDetail(deviceInfoSet, &deviceInterfaceData, detailDataBuffer, requiredSize, &requiredSize, nullptr))
-			{
-				SetupDiDestroyDeviceInfoList(deviceInfoSet);
-				free(detailDataBuffer);
-				continue;
-			}
+            // get detail buffer
+            if (!SetupDiGetDeviceInterfaceDetail(deviceInfoSet, &deviceInterfaceData, detailDataBuffer, requiredSize, &requiredSize, nullptr))
+            {
+                SetupDiDestroyDeviceInfoList(deviceInfoSet);
+                free(detailDataBuffer);
+                continue;
+            }
 
-			// bus found, open it
-			g_hScpVBus = CreateFile(detailDataBuffer->DevicePath,
-				GENERIC_READ | GENERIC_WRITE,
-				FILE_SHARE_READ | FILE_SHARE_WRITE,
-				nullptr,
-				OPEN_EXISTING,
-				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
-				nullptr);
+            // bus found, open it
+            g_hScpVBus = CreateFile(detailDataBuffer->DevicePath,
+                GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                nullptr,
+                OPEN_EXISTING,
+                FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED,
+                nullptr);
 
-			free(detailDataBuffer);
-			break;
-		}
+            free(detailDataBuffer);
+            break;
+        }
 
-		SetupDiDestroyDeviceInfoList(deviceInfoSet);
-	});
+        SetupDiDestroyDeviceInfoList(deviceInfoSet);
+    });
 }
 
 DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-	{
-		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-	}
+    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+    {
+        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+    }
 
-	if (pGamepad == nullptr)
-	{
-		return XOUTPUT_VBUS_INVALID_STATE_INFO;
-	}
+    if (pGamepad == nullptr)
+    {
+        return XOUTPUT_VBUS_INVALID_STATE_INFO;
+    }
 
-	DWORD trasfered = 0;
-	BYTE buffer[28] = {};
-	auto busIndex = dwUserIndex + 1;
+    DWORD trasfered = 0;
+    BYTE buffer[28] = {};
+    auto busIndex = dwUserIndex + 1;
 
-	buffer[0] = 0x1C;
+    buffer[0] = 0x1C;
 
-	// encode user index
-	buffer[4] = ((busIndex >> 0) & 0xFF);
-	buffer[5] = ((busIndex >> 8) & 0xFF);
-	buffer[6] = ((busIndex >> 16) & 0xFF);
-	buffer[7] = ((busIndex >> 24) & 0xFF);
+    // encode user index
+    buffer[4] = ((busIndex >> 0) & 0xFF);
+    buffer[5] = ((busIndex >> 8) & 0xFF);
+    buffer[6] = ((busIndex >> 16) & 0xFF);
+    buffer[7] = ((busIndex >> 24) & 0xFF);
 
-	buffer[9] = 0x14;
+    buffer[9] = 0x14;
 
-	// concat gamepad info to buffer
-	memcpy_s(&buffer[10], _countof(buffer), pGamepad, sizeof(XINPUT_GAMEPAD));
+    // concat gamepad info to buffer
+    memcpy_s(&buffer[10], _countof(buffer), pGamepad, sizeof(XINPUT_GAMEPAD));
 
-	// vibration and LED info end up here
-	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
+    // vibration and LED info end up here
+    BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
 
-	// send report to bus, receive vibration and LED status
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_REPORT_HARDWARE, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
+    // send report to bus, receive vibration and LED status
+    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_REPORT_HARDWARE, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
 
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-	}
+    if (DEVICE_IO_CONTROL_FAILED(retval))
+    {
+        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+    }
 
-	// cache feedback
-	memcpy_s(g_Feedback[dwUserIndex], FEEDBACK_BUFFER_LENGTH, output, FEEDBACK_BUFFER_LENGTH);
+    // cache feedback
+    memcpy_s(g_Feedback[dwUserIndex], FEEDBACK_BUFFER_LENGTH, output, FEEDBACK_BUFFER_LENGTH);
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
 DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor, PBYTE bLed)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-	{
-		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-	}
+    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+    {
+        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+    }
 
-	auto pad = g_Feedback[dwUserIndex];
+    auto pad = g_Feedback[dwUserIndex];
 
-	if (bVibrate != nullptr)
-	{
-		*bVibrate = (pad[1] == 0x08) ? 0x01 : 0x00;
-	}
+    if (bVibrate != nullptr)
+    {
+        *bVibrate = (pad[1] == 0x08) ? 0x01 : 0x00;
+    }
 
-	if (bLargeMotor != nullptr)
-	{
-		*bLargeMotor = pad[3];
-	}
+    if (bLargeMotor != nullptr)
+    {
+        *bLargeMotor = pad[3];
+    }
 
-	if (bSmallMotor != nullptr)
-	{
-		*bSmallMotor = pad[4];
-	}
+    if (bSmallMotor != nullptr)
+    {
+        *bSmallMotor = pad[4];
+    }
 
-	if (bLed != nullptr)
-	{
-		*bLed = pad[8];
-	}
+    if (bLed != nullptr)
+    {
+        *bLed = pad[8];
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
 DWORD XOutputGetRealUserIndex(DWORD dwUserIndex, DWORD* dwRealIndex)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (dwRealIndex != nullptr)
-	{
-		*dwRealIndex = g_Feedback[dwUserIndex][8];
-	}
+    if (dwRealIndex != nullptr)
+    {
+        *dwRealIndex = g_Feedback[dwUserIndex][8];
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
 DWORD XOutputPlugIn(DWORD dwUserIndex)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-	{
-		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-	}
+    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+    {
+        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+    }
 
-	DWORD trasfered = 0;
-	BYTE buffer[16] = {};
-	auto busIndex = dwUserIndex + 1;
+    DWORD trasfered = 0;
+    BYTE buffer[16] = {};
+    auto busIndex = dwUserIndex + 1;
 
-	buffer[0] = 0x10;
+    buffer[0] = 0x10;
 
-	buffer[4] = ((busIndex >> 0) & 0xFF);
-	buffer[5] = ((busIndex >> 8) & 0xFF);
-	buffer[6] = ((busIndex >> 16) & 0xFF);
-	buffer[8] = ((busIndex >> 24) & 0xFF);
+    buffer[4] = ((busIndex >> 0) & 0xFF);
+    buffer[5] = ((busIndex >> 8) & 0xFF);
+    buffer[6] = ((busIndex >> 16) & 0xFF);
+    buffer[8] = ((busIndex >> 24) & 0xFF);
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PLUGIN_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
+    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PLUGIN_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
 
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-	}
+    if (DEVICE_IO_CONTROL_FAILED(retval))
+    {
+        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
-DWORD XOutputUnPlug_opt(_In_ DWORD dwUserIndex, _In_ BOOL  bForce)
+DWORD XOutputUnPlug_Internal(DWORD dwUserIndex, BOOL bForce)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-	{
-		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-	}
+    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+    {
+        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+    }
 
-	DWORD trasfered = 0;
-	BUSENUM_UNPLUG_HARDWARE buffer = {};
-	auto busIndex = dwUserIndex + 1;
+    DWORD trasfered = 0;
+    BUSENUM_UNPLUG_HARDWARE buffer = {};
+    auto busIndex = dwUserIndex + 1;
 
-	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
-	buffer.SerialNo = busIndex ;
+    buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
+    buffer.SerialNo = busIndex;
 
-	if (bForce)
-		buffer.Flags = 0x0001;
-	else
- 		buffer.Flags = 0x0000;
+    if (bForce)
+        buffer.Flags = 0x0001;
+    else
+        buffer.Flags = 0x0000;
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, (LPVOID)(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
+    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, static_cast<LPVOID>(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
 
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-	}
+    if (DEVICE_IO_CONTROL_FAILED(retval))
+    {
+        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
-DWORD XOutputUnPlug(_In_ DWORD dwUserIndex)
+DWORD XOutputUnPlug(DWORD dwUserIndex)
 {
-	return  XOutputUnPlug_opt(dwUserIndex, FALSE);
+    return XOutputUnPlug_Internal(dwUserIndex, FALSE);
 }
 
-DWORD XOutputUnPlugForce( _In_ DWORD dwUserIndex )
+DWORD XOutputUnPlugForce(DWORD dwUserIndex)
 {
-	return  XOutputUnPlug_opt(dwUserIndex, TRUE);
+    return XOutputUnPlug_Internal(dwUserIndex, TRUE);
 }
 
-DWORD XOutputUnPlugAll_opt(BOOL bForce)
+DWORD XOutputUnPlugAll_Internal(BOOL bForce)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	DWORD trasfered = 0;
-	BUSENUM_UNPLUG_HARDWARE buffer = {};
-	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
-	buffer.SerialNo = 0;
+    DWORD trasfered = 0;
+    BUSENUM_UNPLUG_HARDWARE buffer = {};
+    buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
+    buffer.SerialNo = 0;
 
-	if (bForce)
-		buffer.Flags = 0x0001;
-	else
-		buffer.Flags = 0x0000;
+    if (bForce)
+        buffer.Flags = 0x0001;
+    else
+        buffer.Flags = 0x0000;
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, (LPVOID)(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
+    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, static_cast<LPVOID>(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
 
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-	}
+    if (DEVICE_IO_CONTROL_FAILED(retval))
+    {
+        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
 DWORD XOutputUnPlugAll()
 {
-	return XOutputUnPlugAll_opt(FALSE);
+    return XOutputUnPlugAll_Internal(FALSE);
 }
 
 DWORD XOutputUnPlugAllForce()
 {
-	return XOutputUnPlugAll_opt(TRUE);
+    return XOutputUnPlugAll_Internal(TRUE);
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -310,38 +310,38 @@ DWORD XOutputUnPlugAllForce()
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputIsPluggedIn(DWORD dwUserIndex, PBOOL Exist)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-	{
-		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-	}
+    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+    {
+        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+    }
 
-	ULONG buffer[1] = {};
-	ULONG output[1] = {};
-	DWORD trasfered = 0;
+    ULONG buffer[1] = {};
+    ULONG output[1] = {};
+    DWORD trasfered = 0;
 
-	// Prepare the User Index for sending
-	buffer[0] = dwUserIndex;
+    // Prepare the User Index for sending
+    buffer[0] = dwUserIndex;
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_ISDEVPLUGGED, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
+    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_ISDEVPLUGGED, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
 
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-	}
+    if (DEVICE_IO_CONTROL_FAILED(retval))
+    {
+        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+    }
 
-	if (Exist != nullptr)
-	{
-		*Exist = (*output != 0) ? TRUE : FALSE;
-	}
+    if (Exist != nullptr)
+    {
+        *Exist = (*output != 0) ? TRUE : FALSE;
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -356,34 +356,34 @@ DWORD XOutputIsPluggedIn(DWORD dwUserIndex, PBOOL Exist)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputGetFreeSlots(DWORD dwUserIndex, PUCHAR nSlots)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-	{
-		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-	}
+    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+    {
+        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+    }
 
-	UCHAR output[1] = {};
-	DWORD trasfered = 0;
+    UCHAR output[1] = {};
+    DWORD trasfered = 0;
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_EMPTY_SLOTS, nullptr, 0, output, 1, &trasfered, nullptr);
+    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_EMPTY_SLOTS, nullptr, 0, output, 1, &trasfered, nullptr);
 
-	if (DEVICE_IO_CONTROL_FAILED(retval))
-	{
-		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-	}
+    if (DEVICE_IO_CONTROL_FAILED(retval))
+    {
+        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+    }
 
-	if (nSlots != nullptr)
-	{
-		*nSlots = *output;
-	}
+    if (nSlots != nullptr)
+    {
+        *nSlots = *output;
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
 ///-------------------------------------------------------------------------------------------------
@@ -399,37 +399,37 @@ DWORD XOutputGetFreeSlots(DWORD dwUserIndex, PUCHAR nSlots)
 ///-------------------------------------------------------------------------------------------------
 DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
 {
-	Initialize();
+    Initialize();
 
-	if (VBUS_NOT_INITIALIZED())
-	{
-		return XOUTPUT_VBUS_NOT_CONNECTED;
-	}
+    if (VBUS_NOT_INITIALIZED())
+    {
+        return XOUTPUT_VBUS_NOT_CONNECTED;
+    }
 
-	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-	{
-		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-	}
+    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+    {
+        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+    }
 
-	ULONG buffer[1] = {};
-	ULONG output[1] = {};
-	DWORD trasfered = 0;
+    ULONG buffer[1] = {};
+    ULONG output[1] = {};
+    DWORD trasfered = 0;
 
-	// Prepare the User Index for sending
-	buffer[0] = dwUserIndex;
+    // Prepare the User Index for sending
+    buffer[0] = dwUserIndex;
 
-	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PROC_ID, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
+    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PROC_ID, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
 
-	if (DEVICE_IO_CONTROL_FAILED(retval) || *output == 0)
-	{
-		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-	}
+    if (DEVICE_IO_CONTROL_FAILED(retval) || *output == 0)
+    {
+        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+    }
 
-	if (Owned != nullptr)
-	{
-		*Owned = (GetCurrentProcessId() == *output) ? TRUE : FALSE;
-	}
+    if (Owned != nullptr)
+    {
+        *Owned = (GetCurrentProcessId() == *output) ? TRUE : FALSE;
+    }
 
-	return ERROR_SUCCESS;
+    return ERROR_SUCCESS;
 }
 
