@@ -47,10 +47,10 @@
     <ClInclude Include="bus\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\ScpVBus.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\IoCtrl.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\ScpVBus.h">
       <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>

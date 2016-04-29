@@ -3,8 +3,9 @@
 
 #include "stdafx.h"
 #include <winioctl.h>
+#include <initguid.h>
 #include "XOutput.h"
-#include "..\ScpVBus\inc\ScpVBus.h"
+#include <ScpVBus.h>
 #include <stdlib.h>
 #include <mutex>
 #include <SetupAPI.h>
@@ -29,13 +30,12 @@ void Initialize()
 	{
 		SP_DEVICE_INTERFACE_DATA deviceInterfaceData = {};
 		deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
-		GUID deviceClassGuid = { 0xF679F562, 0x3164, 0x42CE,{0xA4, 0xDB, 0xE7 ,0xDD ,0xBE ,0x72 ,0x39 ,0x09} };
 		DWORD memberIndex = 0;
 		DWORD requiredSize = 0;
 
-		auto deviceInfoSet = SetupDiGetClassDevs(&deviceClassGuid, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+		auto deviceInfoSet = SetupDiGetClassDevs(&GUID_DEVINTERFACE_SCPVBUS, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 
-		while (SetupDiEnumDeviceInterfaces(deviceInfoSet, nullptr, &deviceClassGuid, memberIndex, &deviceInterfaceData))
+		while (SetupDiEnumDeviceInterfaces(deviceInfoSet, nullptr, &GUID_DEVINTERFACE_SCPVBUS, memberIndex, &deviceInterfaceData))
 		{
 			// get required target buffer size
 			SetupDiGetDeviceInterfaceDetail(deviceInfoSet, &deviceInterfaceData, nullptr, 0, &requiredSize, nullptr);

@@ -36,6 +36,9 @@
     <ClInclude Include="..\Common\IoCtrl.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="..\Common\ScpVBus.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
