@@ -406,6 +406,17 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
         }
         break;
 
+		// Get the driver version
+	case IOCTL_BUSENUM_VERSION:
+		// check I/O buffer size submitted by DeviceIoControl()
+		if ((sizeof(DWORD) == outlen))
+		{
+			// Call the worker function
+			*(DWORD *)buffer = BUS_VERSION;
+			Irp->IoStatus.Information = sizeof(UCHAR);
+		}
+		break;
+
     default:
 
         break; // default status is STATUS_INVALID_PARAMETER
@@ -1563,3 +1574,5 @@ NTSTATUS Bus_GetNumberOfEmptySlots(PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
     Transfer[0] = count;
     return STATUS_SUCCESS;
 }
+
+

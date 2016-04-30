@@ -433,3 +433,40 @@ DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
     return ERROR_SUCCESS;
 }
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Get the Virtual bus' version number. </summary>
+///
+///
+///  <param name="Owned">	Pointer to DWORD holding the Bus Version Number. </param>
+///
+/// <remarks>	Shaul, 029.04.2016. </remarks>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+
+DWORD XOutputGetBusVersion(PDWORD Version)
+{
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return ERROR_VBUS_NOT_CONNECTED;
+	}
+
+	DWORD output[1] = {0};
+	DWORD trasfered = 0;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_VERSION, nullptr, 0, output, 4, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (Version != nullptr)
+	{
+		*Version = *output;
+	}
+
+	return ERROR_SUCCESS;
+}

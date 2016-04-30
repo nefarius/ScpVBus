@@ -231,6 +231,11 @@ extern "C"
                 _Out_	PBOOL Owned
     );
 
+	XOUTPUT_API DWORD XOutputGetBusVersion(
+		_Out_ PDWORD Version
+	);
+
+
 #ifdef __cplusplus
 }
 #endif
