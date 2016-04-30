@@ -30,7 +30,6 @@
 #define XOUTPUT_VBUS_IOCTL_REQUEST_FAILED   0x90002
 #define XOUTPUT_VBUS_INVALID_STATE_INFO     0x90003
 
-
 /// 
 /// XOutput API
 /// 
@@ -63,6 +62,8 @@ extern "C"
         _In_  DWORD dwUserIndex,
               _Out_ XINPUT_GAMEPAD* pGamepad
     );
+
+	
 
     ///-------------------------------------------------------------------------------------------------
     /// <summary>   Retrieves the current vibration state of the specified virtual controller. </summary>
@@ -231,6 +232,29 @@ extern "C"
                 _Out_	PBOOL Owned
     );
 
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   
+	/// Get Version of Virtual bus driver package.
+	//  The value corresponds to the value set by DriverVer in the corresponding INF file
+	/// </summary>
+	///
+	/// <remarks>
+	/// The format in the INF file is A.B.C.D where all fields are set as decimal numbers
+	//  The output of this function dedicates one WORD (16 bits) per field.
+	/// </remarks>
+	///
+	/// <param name="Version">  Package version number. </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	XOUTPUT_API DWORD XOutputGetDriverPackageVersion(
+		_Out_ PDWORDLONG Version
+	);
 #ifdef __cplusplus
 }
 #endif
