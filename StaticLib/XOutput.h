@@ -1,31 +1,11 @@
 /***************************************************************************
 *                                                                          *
-*   XOutput.h -- This module defines Xbox 360 Virtual Controller APIs      *
+*   XInput.h -- This module defines Xbox 360 Virtual Controller APIs       *
 *               and constants for the Windows platform.                    *
 *                                                                          *
 *   Copyright (c) Benjamin Höglinger, Shaul Eizikovich                     *
 *                                                                          *
 ***************************************************************************/
-
-/***************************************************************************
-*                                                                          *
-*   How to use this header file to compile your application:               *
-*   There are 3 regions:                                                   *
-*   1. Compilation mode - sets the type of the compilation target          *
-*   2. Error Codes                                                         *
-*   3. Interface Functions                                                 *
-*                                                                          *
-*   You can link your application either to XOutput dynamic or static lib  *
-*                                                                          *
-*   Dynamic linking:                                                       *
-*   Place file XOutput1_2.lib in the the library path                      *
-*                                                                          *
-*   Static linking:                                                        *
-*   Place file XOutputStatic1_2.lib in the the library path                *
-*   Uncomment the line under this frame:                                   *
-*                                                                          *
-***************************************************************************/
-//#define  USE_STATIC // For static linking
 
 #ifdef _MSC_VER
 #pragma once
@@ -34,65 +14,56 @@
 #include <Windows.h>
 #include <Xinput.h>
 
-#pragma region Compilation Modes
+#if 0
+#ifndef DLL_EXPORT
 #if XOUTPUT_EXPORTS
-#ifdef _USRLIB
-#define XOUTPUT_API
-#pragma comment(lib,"SetupAPI")
-#else
 #define XOUTPUT_API __declspec(dllexport)
-#endif
 #else
 #define XOUTPUT_API __declspec(dllimport)
 #endif
+#endif
+#endif
 
-#ifdef USE_STATIC
-#undef XOUTPUT_API
+#ifndef XOUTPUT_API
 #define XOUTPUT_API
 #endif
-#pragma endregion
+
 
 /// 
 /// XOutput error codes
 /// 
-#pragma region Error Codes
 #define XOUTPUT_VBUS_NOT_CONNECTED          0x90000
 #define XOUTPUT_VBUS_INDEX_OUT_OF_RANGE     0x90001
 #define XOUTPUT_VBUS_IOCTL_REQUEST_FAILED   0x90002
 #define XOUTPUT_VBUS_INVALID_STATE_INFO     0x90003
-#pragma endregion
 
-/// 
-/// XOutput API
-/// 
-#pragma region Interface Functions
-
-#ifdef __cplusplus
 extern "C"
-{ // only need to export C interface if
-	// used by C++ source code
-#endif
+{
 
-	///-------------------------------------------------------------------------------------------------
-	/// <summary>   Sends state information to a connected virtual controller. </summary>
-	///
-	/// <remarks>
-	/// This function fails if the supplied user index represents an unplugged device or a device
-	/// owned by another process.
-	/// </remarks>
-	///
-	/// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
-	/// <param name="pGamepad">     [in,out] Pointer to an XINPUT_GAMEPAD structure containing the
-	///                             state information to send to the virtual controller. </param>
-	///
-	/// <returns>
-	/// If the function succeeds, the return value is ERROR_SUCCESS.
 	/// 
-	/// If the function fails, the return value is an error code defined in XOutput.h. The function
-	/// does not use SetLastError to set the calling thread's last-error code.
-	/// </returns>
-	///-------------------------------------------------------------------------------------------------
-	XOUTPUT_API DWORD XOutputSetState(
+	/// XOutput API
+	/// 
+
+		///-------------------------------------------------------------------------------------------------
+		/// <summary>   Sends state information to a connected virtual controller. </summary>
+		///
+		/// <remarks>
+		/// This function fails if the supplied user index represents an unplugged device or a device
+		/// owned by another process.
+		/// </remarks>
+		///
+		/// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+		/// <param name="pGamepad">     [in,out] Pointer to an XINPUT_GAMEPAD structure containing the
+		///                             state information to send to the virtual controller. </param>
+		///
+		/// <returns>
+		/// If the function succeeds, the return value is ERROR_SUCCESS.
+		/// 
+		/// If the function fails, the return value is an error code defined in XOutput.h. The function
+		/// does not use SetLastError to set the calling thread's last-error code.
+		/// </returns>
+		///-------------------------------------------------------------------------------------------------
+	XOUTPUT_API DWORD  XOutputSetState(
 		_In_  DWORD dwUserIndex,
 		_Out_ XINPUT_GAMEPAD* pGamepad
 	);
@@ -286,11 +257,8 @@ extern "C"
 	/// does not use SetLastError to set the calling thread's last-error code.
 	/// </returns>
 	///-------------------------------------------------------------------------------------------------
-	XOUTPUT_API DWORD XOutputGetDriverPackageVersion(
+	XOUTPUT_API DWORD  XOutputGetDriverPackageVersion(
 		_Out_ PDWORDLONG Version
 	);
-#ifdef __cplusplus
-}
-#endif
 
-#pragma endregion
+}
