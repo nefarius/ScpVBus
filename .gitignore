@@ -228,6 +228,7 @@ vXboxInstall/vXboxInstall.h
 /ScpVBus/SDV-default.xml
 /ScpVBus/sdv
 /ScpVBus/runsdvui.cmd
+<<<<<<< HEAD
 *.tlog
 *.iobj
 *.ipdb
@@ -236,4 +237,14 @@ StaticLib/ReadMe.txt
 StaticLib/TestStatic/ReadMe.txt
 XOutput/Win32/Debug-Static/Lib/XOutput.res
 XOutput/Win32/Release-Static/Lib/XOutput.res
+=======
+StaticLib/ReadMe.txt
+StaticLib/TestStatic/ReadMe.txt
+*.iobj
+*.ipdb
+*.tlog
+*.idb
+XOutput/Win32/Debug-Static/Lib/
+XOutput/Win32/Release-Static/Lib/
+>>>>>>> Static_Lib
 XOutput/Win32/Release-Static/XOutput.res
