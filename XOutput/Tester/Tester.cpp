@@ -10,6 +10,17 @@ int main()
 	DWORD result;
 	printf("Testing Module XOutput\n\n");
 
+	DWORDLONG Package = 0;
+	if (ERROR_SUCCESS == XOutputGetDriverPackageVersion(&Package))
+		printf("Driver Package Version is %d.%d.%d.%d\n", \
+		(unsigned)(Package >> 48), \
+			   (unsigned)((Package >> 32) & 0xffff), \
+			   (unsigned)((Package >> 16) & 0xffff), \
+			   (unsigned)((Package) & 0xffff) \
+		);
+	else
+		printf("Driver Package Version is Unknown\n");
+
 
 	result = XOutputUnPlugAll();
 	printf("XOutputUnPlugAll(): Return 0x%x\n", result);
