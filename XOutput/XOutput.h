@@ -290,6 +290,26 @@ extern "C"
 		_Out_ PDWORDLONG Version
 	);
 
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   
+	/// Get Version of Virtual bus driver.
+	//  The value is hardcoded into the driver
+	/// </summary>
+	///
+	/// <remarks>
+	/// The format is A.B.C.D where all fields are in the range 0-255
+	//  The output of this function dedicates one BYTE (8 bits) per field.
+	/// </remarks>
+	///
+	/// <param name="Version">  Driver version number. </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
 	XOUTPUT_API DWORD XOutputGetBusVersion(
 		_Out_ PDWORD Version
 	);
