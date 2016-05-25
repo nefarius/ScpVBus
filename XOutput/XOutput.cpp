@@ -450,7 +450,7 @@ DWORD XOutputGetBusVersion(PDWORD Version)
 
 	if (VBUS_NOT_INITIALIZED())
 	{
-		return ERROR_VBUS_NOT_CONNECTED;
+		return XOUTPUT_VBUS_NOT_CONNECTED;
 	}
 
 	DWORD output[1] = {0};
@@ -460,7 +460,7 @@ DWORD XOutputGetBusVersion(PDWORD Version)
 
 	if (DEVICE_IO_CONTROL_FAILED(retval))
 	{
-		return ERROR_VBUS_IOCTL_REQUEST_FAILED;
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	if (Version != nullptr)

@@ -10,6 +10,10 @@ int main()
 	DWORD result;
 	printf("Testing Module XOutput\n\n");
 
+	DWORD ver;
+	result = XOutputGetBusVersion(&ver);
+	printf("XOutputGetBusVersion(): Return 0x%x ; Version=0x%x\n", result, ver);
+
 
 	result = XOutputUnPlugAll();
 	printf("XOutputUnPlugAll(): Return 0x%x\n", result);

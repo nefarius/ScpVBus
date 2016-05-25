@@ -413,7 +413,8 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
 		{
 			// Call the worker function
 			*(DWORD *)buffer = BUS_VERSION;
-			Irp->IoStatus.Information = sizeof(UCHAR);
+			Irp->IoStatus.Information = sizeof(DWORD);
+			status = STATUS_SUCCESS;
 		}
 		break;
 
