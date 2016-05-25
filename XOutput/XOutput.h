@@ -289,6 +289,12 @@ extern "C"
 	XOUTPUT_API DWORD XOutputGetDriverPackageVersion(
 		_Out_ PDWORDLONG Version
 	);
+
+	XOUTPUT_API DWORD XOutputGetBusVersion(
+		_Out_ PDWORD Version
+	);
+
+
 #ifdef __cplusplus
 }
 #endif

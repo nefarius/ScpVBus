@@ -69,6 +69,58 @@ void Initialize()
 
     });
 }
+DWORD XOutputGetDriverPackageVersion(PDWORDLONG  Version)
+{
+	DWORD Status = ERROR_INVALID_FUNCTION;
+	// Get the "device info set" for our driver GUID
+	HDEVINFO devInfoSet = SetupDiGetClassDevs(&GUID_DEVINTERFACE_SCPVBUS, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
+
+	// Cycle through all devices currently present (Only One)
+	for (int i = 0; ; i++)
+	{
+		// Get the device info for this device
+		SP_DEVINFO_DATA devInfo;
+		devInfo.cbSize = sizeof(SP_DEVINFO_DATA);
+		if (!SetupDiEnumDeviceInfo(devInfoSet, i, &devInfo))
+			break;
+
+
+		SP_DEVINSTALL_PARAMS InstallParams;
+		InstallParams.cbSize = sizeof(SP_DEVINSTALL_PARAMS);
+		if (!SetupDiGetDeviceInstallParams(devInfoSet, &devInfo, &InstallParams))
+		{
+			return GetLastError();
+		}
+		else
+		{
+			InstallParams.FlagsEx |= DI_FLAGSEX_INSTALLEDDRIVER;
+			if (!SetupDiSetDeviceInstallParams(devInfoSet, &devInfo, &InstallParams))
+			{
+				return GetLastError();
+			}
+		}
+
+
+		// Build a list of driver info items that we will retrieve below
+		if (!SetupDiBuildDriverInfoList(devInfoSet, &devInfo, SPDIT_COMPATDRIVER))
+			return GetLastError(); // Exit on error
+
+								   // Get all the info items for this driver 
+		for (int j = 0; ; j++)
+		{
+			SP_DRVINFO_DATA drvInfo;
+			drvInfo.cbSize = sizeof(SP_DRVINFO_DATA);
+			if (!SetupDiEnumDriverInfo(devInfoSet, &devInfo, SPDIT_COMPATDRIVER, j, &drvInfo))
+				break;
+			*Version = drvInfo.DriverVersion;
+			Status = ERROR_SUCCESS;
+		}
+
+	}
+
+	return Status;
+
+}
 
 DWORD XOutputGetDriverPackageVersion(PDWORDLONG  Version)
 {
@@ -486,3 +538,40 @@ DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
     return ERROR_SUCCESS;
 }
 
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Get the Virtual bus' version number. </summary>
+///
+///
+///  <param name="Owned">	Pointer to DWORD holding the Bus Version Number. </param>
+///
+/// <remarks>	Shaul, 029.04.2016. </remarks>
+///
+/// <returns>	A DWORD. </returns>
+///-------------------------------------------------------------------------------------------------
+
+DWORD XOutputGetBusVersion(PDWORD Version)
+{
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return XOUTPUT_VBUS_NOT_CONNECTED;
+	}
+
+	DWORD output[1] = {0};
+	DWORD trasfered = 0;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_VERSION, nullptr, 0, output, 4, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	if (Version != nullptr)
+	{
+		*Version = *output;
+	}
+
+	return ERROR_SUCCESS;
+}

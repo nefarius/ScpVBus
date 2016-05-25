@@ -20,6 +20,9 @@ int main()
 		);
 	else
 		printf("Driver Package Version is Unknown\n");
+	DWORD ver;
+	result = XOutputGetBusVersion(&ver);
+	printf("XOutputGetBusVersion(): Return 0x%x ; Version=0x%x\n", result, ver);
 
 
 	result = XOutputUnPlugAll();
