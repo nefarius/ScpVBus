@@ -11,10 +11,18 @@
 #include <SetupAPI.h>
 #include <IoCtrl.h>
 
+#define MAX_NUMBER_XBOX_CTRLS 4
 #define FEEDBACK_BUFFER_LENGTH 9
 static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
 std::once_flag initFlag;
 HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
+XINPUT_GAMEPAD g_Gamepad[MAX_NUMBER_XBOX_CTRLS];
+
+/// Forward declarations of internal functions
+void InitAllGamePads(void);
+DWORD XOutputSetGetState(DWORD dwUserIndex, XINPUT_GAMEPAD * pGamepad, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor, PBYTE bLed);
+DWORD XOutputUnPlug_Internal(DWORD dwUserIndex, BOOL bForce);
+
 
 ///-------------------------------------------------------------------------------------------------
 /// <summary>	Attempts to find and open the first instance of the virtual bus. </summary>
@@ -32,6 +40,8 @@ void Initialize()
         deviceInterfaceData.cbSize = sizeof(deviceInterfaceData);
         DWORD memberIndex = 0;
         DWORD requiredSize = 0;
+
+		InitAllGamePads();
 
         auto deviceInfoSet = SetupDiGetClassDevs(&GUID_DEVINTERFACE_SCPVBUS, nullptr, nullptr, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 
@@ -124,55 +134,36 @@ DWORD XOutputGetDriverPackageVersion(PDWORDLONG  Version)
 
 DWORD XOutputSetState(DWORD dwUserIndex, XINPUT_GAMEPAD* pGamepad)
 {
-    Initialize();
+	// Save last  position data
+	memcpy_s(&g_Gamepad[dwUserIndex], sizeof(XINPUT_GAMEPAD), pGamepad, sizeof(XINPUT_GAMEPAD));
 
-    if (VBUS_NOT_INITIALIZED())
-    {
-        return XOUTPUT_VBUS_NOT_CONNECTED;
-    }
+	//  Set State
+	return XOutputSetGetState(dwUserIndex, pGamepad, NULL, NULL, NULL, NULL);
+}
 
-    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-    {
-        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-    }
+DWORD XoutputGetLedNumber(DWORD dwUserIndex, PBYTE bLed)
+{
+	DWORD retval = XOutputSetGetState(dwUserIndex, &g_Gamepad[dwUserIndex], nullptr, nullptr, nullptr, bLed);
+	if (retval == ERROR_SUCCESS)
+		(*bLed)++;
+	return retval;
+}
 
-    if (pGamepad == nullptr)
-    {
-        return XOUTPUT_VBUS_INVALID_STATE_INFO;
-    }
-
-    DWORD trasfered = 0;
-    BYTE buffer[28] = {};
-    auto busIndex = dwUserIndex + 1;
-
-    buffer[0] = 0x1C;
-
-    // encode user index
-    buffer[4] = ((busIndex >> 0) & 0xFF);
-    buffer[5] = ((busIndex >> 8) & 0xFF);
-    buffer[6] = ((busIndex >> 16) & 0xFF);
-    buffer[7] = ((busIndex >> 24) & 0xFF);
-
-    buffer[9] = 0x14;
-
-    // concat gamepad info to buffer
-    memcpy_s(&buffer[10], _countof(buffer), pGamepad, sizeof(XINPUT_GAMEPAD));
-
-    // vibration and LED info end up here
-    BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
-
-    // send report to bus, receive vibration and LED status
-    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_REPORT_HARDWARE, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
-
-    if (DEVICE_IO_CONTROL_FAILED(retval))
-    {
-        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-    }
-
-    // cache feedback
-    memcpy_s(g_Feedback[dwUserIndex], FEEDBACK_BUFFER_LENGTH, output, FEEDBACK_BUFFER_LENGTH);
-
-    return ERROR_SUCCESS;
+DWORD XoutputGetVibration(UINT dwUserIndex, PXINPUT_VIBRATION pVib)
+{
+	BYTE LargeMotor, SmallMotor, Vibrate;
+	DWORD retval = XOutputSetGetState(dwUserIndex, &g_Gamepad[dwUserIndex], &Vibrate, &LargeMotor, &SmallMotor, nullptr);
+	if (retval == ERROR_SUCCESS)
+	{
+		if (Vibrate)
+		{
+			(*pVib).wLeftMotorSpeed = LargeMotor * 256;
+			(*pVib).wRightMotorSpeed = SmallMotor * 256;
+		}
+		else
+			(*pVib).wLeftMotorSpeed = (*pVib).wRightMotorSpeed = 0;
+	};
+	return retval;
 }
 
 DWORD XOutputGetState(DWORD dwUserIndex, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor, PBYTE bLed)
@@ -257,42 +248,6 @@ DWORD XOutputPlugIn(DWORD dwUserIndex)
     buffer[8] = ((busIndex >> 24) & 0xFF);
 
     auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PLUGIN_HARDWARE, buffer, _countof(buffer), nullptr, 0, &trasfered, nullptr);
-
-    if (DEVICE_IO_CONTROL_FAILED(retval))
-    {
-        return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
-    }
-
-    return ERROR_SUCCESS;
-}
-
-DWORD XOutputUnPlug_Internal(DWORD dwUserIndex, BOOL bForce)
-{
-    Initialize();
-
-    if (VBUS_NOT_INITIALIZED())
-    {
-        return XOUTPUT_VBUS_NOT_CONNECTED;
-    }
-
-    if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
-    {
-        return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
-    }
-
-    DWORD trasfered = 0;
-    BUSENUM_UNPLUG_HARDWARE buffer = {};
-    auto busIndex = dwUserIndex + 1;
-
-    buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
-    buffer.SerialNo = busIndex;
-
-    if (bForce)
-        buffer.Flags = 0x0001;
-    else
-        buffer.Flags = 0x0000;
-
-    auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, static_cast<LPVOID>(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
 
     if (DEVICE_IO_CONTROL_FAILED(retval))
     {
@@ -519,6 +474,133 @@ DWORD XOutputGetBusVersion(PDWORD Version)
 	if (Version != nullptr)
 	{
 		*Version = *output;
+	}
+
+	return ERROR_SUCCESS;
+}
+
+///-------------------------------------------------------------------------------------------------
+/// <summary>	Initialize all structures holding gamepad status </summary>
+///
+/// <remarks>
+/// Called once from within Initialize()
+/// </remarks>
+///-------------------------------------------------------------------------------------------------
+void InitAllGamePads(void)
+{
+	for (auto pad : g_Gamepad)
+	{
+		pad.bLeftTrigger = 0;
+		pad.bRightTrigger = 0;
+		pad.sThumbLX = 0;
+		pad.sThumbLY = 0;
+		pad.sThumbRX = 0;
+		pad.sThumbRY = 0;
+		pad.wButtons = 0;
+	}
+}
+
+DWORD XOutputSetGetState(DWORD dwUserIndex, XINPUT_GAMEPAD * pGamepad, PBYTE bVibrate, PBYTE bLargeMotor, PBYTE bSmallMotor, PBYTE bLed)
+{
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return XOUTPUT_VBUS_NOT_CONNECTED;
+	}
+
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
+	if (pGamepad == nullptr)
+	{
+		return XOUTPUT_VBUS_INVALID_STATE_INFO;
+	}
+
+	DWORD trasfered = 0;
+	BYTE buffer[28] = {};
+	auto busIndex = dwUserIndex + 1;
+
+	buffer[0] = 0x1C;
+
+	// encode user index
+	buffer[4] = ((busIndex >> 0) & 0xFF);
+	buffer[5] = ((busIndex >> 8) & 0xFF);
+	buffer[6] = ((busIndex >> 16) & 0xFF);
+	buffer[7] = ((busIndex >> 24) & 0xFF);
+
+	buffer[9] = 0x14;
+
+	// concat gamepad info to buffer
+	memcpy_s(&buffer[10], _countof(buffer), pGamepad, sizeof(XINPUT_GAMEPAD));
+
+	// vibration and LED info end up here
+	BYTE output[FEEDBACK_BUFFER_LENGTH] = {};
+
+	// send report to bus, receive vibration and LED status
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_REPORT_HARDWARE, buffer, _countof(buffer), output, FEEDBACK_BUFFER_LENGTH, &trasfered, nullptr);
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
+	}
+
+	// Feedback
+	if (bVibrate != nullptr)
+	{
+		*bVibrate = (output[1] == 0x08) ? 0x01 : 0x00;
+	}
+
+	if (bLargeMotor != nullptr)
+	{
+		*bLargeMotor = output[3];
+	}
+
+	if (bSmallMotor != nullptr)
+	{
+		*bSmallMotor = output[4];
+	}
+
+	if (bLed != nullptr)
+	{
+		*bLed = output[8];
+	}
+
+	return ERROR_SUCCESS;
+}
+
+DWORD XOutputUnPlug_Internal(DWORD dwUserIndex, BOOL bForce)
+{
+	Initialize();
+
+	if (VBUS_NOT_INITIALIZED())
+	{
+		return XOUTPUT_VBUS_NOT_CONNECTED;
+	}
+
+	if (USER_INDEX_OUT_OF_RANGE(dwUserIndex))
+	{
+		return XOUTPUT_VBUS_INDEX_OUT_OF_RANGE;
+	}
+
+	DWORD trasfered = 0;
+	BUSENUM_UNPLUG_HARDWARE buffer = {};
+	auto busIndex = dwUserIndex + 1;
+
+	buffer.Size = sizeof(BUSENUM_UNPLUG_HARDWARE);
+	buffer.SerialNo = busIndex;
+
+	if (bForce)
+		buffer.Flags = 0x0001;
+	else
+		buffer.Flags = 0x0000;
+
+	auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_UNPLUG_HARDWARE, static_cast<LPVOID>(&buffer), buffer.Size, nullptr, 0, &trasfered, nullptr);
+
+	if (DEVICE_IO_CONTROL_FAILED(retval))
+	{
+		return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
 	}
 
 	return ERROR_SUCCESS;
