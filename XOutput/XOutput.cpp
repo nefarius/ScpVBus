@@ -12,7 +12,7 @@
 #include <IoCtrl.h>
 
 #define MAX_NUMBER_XBOX_CTRLS 4
-#define FEEDBACK_BUFFER_LENGTH 9
+#define FEEDBACK_BUFFER_LENGTH 10
 static BYTE g_Feedback[XUSER_MAX_COUNT][FEEDBACK_BUFFER_LENGTH] = {};
 std::once_flag initFlag;
 HANDLE g_hScpVBus = INVALID_HANDLE_VALUE;
@@ -566,6 +566,10 @@ DWORD XOutputSetGetState(DWORD dwUserIndex, XINPUT_GAMEPAD * pGamepad, PBYTE bVi
 	{
 		*bLed = output[8];
 	}
+
+	// Test if device has started
+	if (!output[9])
+		return XOUTPUT_VBUS_DEVICE_NOT_READY;
 
 	return ERROR_SUCCESS;
 }

@@ -59,6 +59,16 @@ int main()
 	getchar();
 
 	result = XOutputPlugIn(2);
+	
+	XINPUT_GAMEPAD 	Gamepad = { 0 };
+	Gamepad.wButtons = 0x1;
+	XOutputSetState(2, &Gamepad);
+
+	
+	BYTE Led0, Led2;
+	result = XoutputGetLedNumber(2, &Led2);
+	printf("XoutputGetLedNumber(2): Led=%d; Return 0x%x\n", Led2, result);
+
 	printf("XOutputPlugIn(2): Return 0x%x\n", result);
 	result = XOutputPlugIn(0);
 	printf("XOutputPlugIn(0): Return 0x%x\n", result);
@@ -66,11 +76,11 @@ int main()
 	printf("Hit any key to continue\n\n");
 	getchar();
 
-	BYTE Led0, Led2;
+	//BYTE Led0, Led2;
 	result = XoutputGetLedNumber(2, &Led2);
 	printf("XoutputGetLedNumber(2): Led=%d; Return 0x%x\n", Led2, result);
 
-	XINPUT_GAMEPAD 	Gamepad = { 0 };
+	//XINPUT_GAMEPAD 	Gamepad = { 0 };
 	Gamepad.wButtons = 0x1;
 	XOutputSetState(2, &Gamepad);
 
