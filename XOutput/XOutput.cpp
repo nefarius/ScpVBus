@@ -335,7 +335,7 @@ DWORD XOutputIsPluggedIn(DWORD dwUserIndex, PBOOL Exist)
     DWORD trasfered = 0;
 
     // Prepare the User Index for sending
-    buffer[0] = dwUserIndex;
+    buffer[0] = dwUserIndex+1;
 
     auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_ISDEVPLUGGED, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
 
