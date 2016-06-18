@@ -368,7 +368,7 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
              * a byte array including rumble information (8 bytes) and the LED index (1 byte)
              * is returned to the caller of DeviceIoControl() for further processing.
              */
-            if (NT_SUCCESS(status)) Irp->IoStatus.Information = (RUMBLE_SIZE + LEDNUM_SIZE);
+            if (NT_SUCCESS(status)) Irp->IoStatus.Information = (RUMBLE_SIZE + LEDNUM_SIZE + STATUS_SIZE);
         }
         break;
 
@@ -405,6 +405,18 @@ NTSTATUS Bus_IoCtl(PDEVICE_OBJECT DeviceObject, PIRP Irp)
                 Irp->IoStatus.Information = sizeof(UCHAR);
         }
         break;
+
+		// Get the driver version
+	case IOCTL_BUSENUM_VERSION:
+		// check I/O buffer size submitted by DeviceIoControl()
+		if ((sizeof(DWORD) == outlen))
+		{
+			// Call the worker function
+			*(DWORD *)buffer = BUS_VERSION;
+			Irp->IoStatus.Information = sizeof(DWORD);
+			status = STATUS_SUCCESS;
+		}
+		break;
 
     default:
 
@@ -1382,6 +1394,12 @@ NTSTATUS Bus_ReportDevice(PBUSENUM_REPORT_HARDWARE Report, PFDO_DEVICE_DATA fdoD
         // pass back current LED number for this PDO
         Transfer[8] = pdoData->LedNumber;
 
+		// pass back presence of device
+		if (pdoData->Started)
+			Transfer[9] = 1;
+		else
+			Transfer[9] = 0;
+
         return STATUS_SUCCESS;
     }
 
@@ -1563,3 +1581,5 @@ NTSTATUS Bus_GetNumberOfEmptySlots(PFDO_DEVICE_DATA fdoData, PUCHAR Transfer)
     Transfer[0] = count;
     return STATUS_SUCCESS;
 }
+
+

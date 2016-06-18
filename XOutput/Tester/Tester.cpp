@@ -20,6 +20,9 @@ int main()
 		);
 	else
 		printf("Driver Package Version is Unknown\n");
+	DWORD ver;
+	result = XOutputGetBusVersion(&ver);
+	printf("XOutputGetBusVersion(): Return 0x%x ; Version=0x%x\n", result, ver);
 
 
 	result = XOutputUnPlugAll();
@@ -56,6 +59,16 @@ int main()
 	getchar();
 
 	result = XOutputPlugIn(2);
+	
+	XINPUT_GAMEPAD 	Gamepad = { 0 };
+	Gamepad.wButtons = 0x1;
+	XOutputSetState(2, &Gamepad);
+
+	
+	BYTE Led0, Led2;
+	result = XoutputGetLedNumber(2, &Led2);
+	printf("XoutputGetLedNumber(2): Led=%d; Return 0x%x\n", Led2, result);
+
 	printf("XOutputPlugIn(2): Return 0x%x\n", result);
 	result = XOutputPlugIn(0);
 	printf("XOutputPlugIn(0): Return 0x%x\n", result);
@@ -63,15 +76,33 @@ int main()
 	printf("Hit any key to continue\n\n");
 	getchar();
 
-	XINPUT_GAMEPAD 	Gamepad = { 0 };
+	//BYTE Led0, Led2;
+	result = XoutputGetLedNumber(2, &Led2);
+	printf("XoutputGetLedNumber(2): Led=%d; Return 0x%x\n", Led2, result);
+
+	//XINPUT_GAMEPAD 	Gamepad = { 0 };
 	Gamepad.wButtons = 0x1;
 	XOutputSetState(2, &Gamepad);
+
+
+	Gamepad.wButtons = 0x2;
 	XOutputSetState(0, &Gamepad);
+	result = XoutputGetLedNumber(0, &Led0);
+	printf("XoutputGetLedNumber(0): Led=%d; Return 0x%x\n", Led0, result);
 
-	BYTE bVibrate[4], bLargeMotor[4], bSmallMotor[4], bLed[4];
-	XOutputGetState(0, &(bVibrate[0]), &(bLargeMotor[0]), &(bSmallMotor[0]), &(bLed[0]));
-	XOutputGetState(2, &(bVibrate[2]), &(bLargeMotor[2]), &(bSmallMotor[2]), &(bLed[2]));
+	printf("Hit any key to continue - Testing vibrator-motors\n\n");
+	getchar();
 
-    return 0;
+	XINPUT_VIBRATION vib0, vib2;
+
+	result = XoutputGetVibration(0, &vib0);
+	printf("XoutputGetVibration(0):  Left Motor:%d; Right Motor:%d; Return 0x%x\n", vib0.wLeftMotorSpeed, vib0.wRightMotorSpeed, result);
+	result = XoutputGetVibration(2, &vib2);
+	printf("XoutputGetVibration(2):  Left Motor:%d; Right Motor:%d; Return 0x%x\n", vib2.wLeftMotorSpeed, vib2.wRightMotorSpeed, result);
+
+	printf("Hit any key to Exit\n\n");
+	getchar();
+
+	return 0;
 }
 

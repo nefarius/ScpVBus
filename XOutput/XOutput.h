@@ -10,7 +10,7 @@
 /***************************************************************************
 *                                                                          *
 *   How to use this header file to compile your application:               *
-*   There are 3 regions:                                                   *
+*   This header file has 3 regions:                                        *
 *   1. Compilation mode - sets the type of the compilation target          *
 *   2. Error Codes                                                         *
 *   3. Interface Functions                                                 *
@@ -60,6 +60,7 @@
 #define XOUTPUT_VBUS_INDEX_OUT_OF_RANGE     0x90001
 #define XOUTPUT_VBUS_IOCTL_REQUEST_FAILED   0x90002
 #define XOUTPUT_VBUS_INVALID_STATE_INFO     0x90003
+#define XOUTPUT_VBUS_DEVICE_NOT_READY	    0x90004
 #pragma endregion
 
 /// 
@@ -158,6 +159,62 @@ extern "C"
 	XOUTPUT_API DWORD XOutputGetRealUserIndex(
 		_In_ DWORD dwUserIndex,
 		_Out_ DWORD* dwRealIndex
+	);
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>
+	/// Retrieves the assigned LED number specified virtual controller.
+	/// </summary>
+	///
+	/// <remarks>
+	/// The device index used internally on the virtual bus does not reflect the index used by the
+	/// XInput API.
+	/// This function returns the value assigned to the device by the system.
+	/// Value range: From 1 to 4.
+	/// 
+	/// This function fails if the supplied user index represents an unplugged device or a device owned by
+	/// another process.
+	/// </remarks>
+	///
+	/// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+	/// <param name="bLed">  [out] Pointer to a BYTE value receiving LED number </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	XOUTPUT_API DWORD XoutputGetLedNumber(
+		_In_ DWORD dwUserIndex,
+		_Out_ PBYTE bLed
+	);
+
+
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   Retrieves the current vibration state of the specified virtual controller. </summary>
+	///
+	/// <remarks>
+	/// This function fails if the supplied user index represents an
+	/// unplugged device or a device owned by another process.
+	/// </remarks>
+	///
+	/// <param name="dwUserIndex">  Index of the virtual controller. Can be a value from 0 to 3. </param>
+	/// <param name="pVib">         Pointer to XINPUT_VIBRATION structure that holds vibration data for both
+	///                             Left and Right motors.
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	XOUTPUT_API DWORD XoutputGetVibration(
+		_In_ UINT dwUserIndex,
+		_Out_ PXINPUT_VIBRATION pVib
 	);
 
 	///-------------------------------------------------------------------------------------------------
@@ -289,6 +346,32 @@ extern "C"
 	XOUTPUT_API DWORD XOutputGetDriverPackageVersion(
 		_Out_ PDWORDLONG Version
 	);
+
+	///-------------------------------------------------------------------------------------------------
+	/// <summary>   
+	/// Get Version of Virtual bus driver.
+	//  The value is hardcoded into the driver
+	/// </summary>
+	///
+	/// <remarks>
+	/// The format is A.B.C.D where all fields are in the range 0-255
+	//  The output of this function dedicates one BYTE (8 bits) per field.
+	/// </remarks>
+	///
+	/// <param name="Version">  Driver version number. </param>
+	///
+	/// <returns>
+	/// If the function succeeds, the return value is ERROR_SUCCESS.
+	/// 
+	/// If the function fails, the return value is an error code defined in XOutput.h. The function
+	/// does not use SetLastError to set the calling thread's last-error code.
+	/// </returns>
+	///-------------------------------------------------------------------------------------------------
+	XOUTPUT_API DWORD XOutputGetBusVersion(
+		_Out_ PDWORD Version
+	);
+
+
 #ifdef __cplusplus
 }
 #endif
