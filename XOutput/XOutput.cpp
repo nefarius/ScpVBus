@@ -428,7 +428,7 @@ DWORD XOutputIsOwned(DWORD dwUserIndex, PBOOL Owned)
 
     auto retval = DeviceIoControl(g_hScpVBus, IOCTL_BUSENUM_PROC_ID, buffer, _countof(buffer), output, 4, &trasfered, nullptr);
 
-    if (DEVICE_IO_CONTROL_FAILED(retval) || *output == 0)
+    if (DEVICE_IO_CONTROL_FAILED(retval))
     {
         return XOUTPUT_VBUS_IOCTL_REQUEST_FAILED;
     }
