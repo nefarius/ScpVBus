@@ -1434,8 +1434,9 @@ NTSTATUS Bus_IsDevicePluggedIn(PVOID Report, PFDO_DEVICE_DATA fdoData, PUCHAR Tr
         {
             Bus_KdPrint(("No devices to report!\n"));
             ExReleaseFastMutex(&fdoData->Mutex);
+			Transfer[0] = 0;
 
-            return STATUS_NO_SUCH_DEVICE;
+            return STATUS_SUCCESS;
         }
 
         // Test that the input id is legitimate
@@ -1493,7 +1494,8 @@ NTSTATUS Bus_GetDeviceCreateProcID(PVOID Report, PFDO_DEVICE_DATA fdoData, PULON
         {
             Bus_KdPrint(("No devices to report!\n"));
             ExReleaseFastMutex(&fdoData->Mutex);
-            return STATUS_NO_SUCH_DEVICE;
+			*Transfer = 0;
+            return STATUS_SUCCESS;
         }
 
         // Test that the input id is legitimate
