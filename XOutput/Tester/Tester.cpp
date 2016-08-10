@@ -24,9 +24,13 @@ int main()
 	result = XOutputGetBusVersion(&ver);
 	printf("XOutputGetBusVersion(): Return 0x%x ; Version=0x%x\n", result, ver);
 
+	BOOL Exist;
+	result = XOutputIsPluggedIn(0, &Exist);
+	result = XOutputIsPluggedIn(7, &Exist);
 
 	result = XOutputUnPlugAll();
 	printf("XOutputUnPlugAll(): Return 0x%x\n", result);
+
 
 	printf("Hit any key toXOutputUnPlugAllForce()\n\n");
 	getchar();
@@ -59,7 +63,9 @@ int main()
 	getchar();
 
 	result = XOutputPlugIn(2);
-	
+	result = XOutputIsPluggedIn(0, &Exist);
+	result = XOutputIsPluggedIn(2, &Exist);
+
 	XINPUT_GAMEPAD 	Gamepad = { 0 };
 	Gamepad.wButtons = 0x1;
 	XOutputSetState(2, &Gamepad);
