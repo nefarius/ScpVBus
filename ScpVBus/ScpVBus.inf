@@ -12,6 +12,7 @@ DriverVer= ;
 
 [DestinationDirs]
 DefaultDestDir = 12
+ScpVBus_Device_CoInstaller_CopyFiles = 11
 
 ; ================= Class section =====================
 
@@ -20,6 +21,7 @@ DefaultDestDir = 12
 
 [SourceDisksFiles]
 ScpVBus.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
 
 ;*****************************************
 ; Install Section
@@ -53,8 +55,6 @@ ServiceBinary  = %12%\ScpVBus.sys
 ;--- ScpVBus_Device Coinstaller installation ------
 ;
 
-[DestinationDirs]
-ScpVBus_Device_CoInstaller_CopyFiles = 11
 
 [ScpVBus_Device.NT.CoInstallers]
 AddReg=ScpVBus_Device_CoInstaller_AddReg
@@ -65,9 +65,6 @@ HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfC
 
 [ScpVBus_Device_CoInstaller_CopyFiles]
 WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
-
-[SourceDisksFiles]
-WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
 
 [ScpVBus_Device.NT.Wdf]
 KmdfService =  ScpVBus, ScpVBus_wdfsect
