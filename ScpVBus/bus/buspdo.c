@@ -35,7 +35,9 @@ NTSTATUS Bus_PDO_PnP(__in PDEVICE_OBJECT DeviceObject, __in PIRP Irp, __in PIO_S
 
 		if (NT_SUCCESS(status))
 		{
+			// Device is starting
 			IoSetDeviceInterfaceState(&DeviceData->InterfaceName, TRUE);
+			DeviceData->Started = TRUE;
 		}
 
         status = STATUS_SUCCESS;
@@ -44,6 +46,7 @@ NTSTATUS Bus_PDO_PnP(__in PDEVICE_OBJECT DeviceObject, __in PIRP Irp, __in PIO_S
     case IRP_MN_STOP_DEVICE:
 
         SET_NEW_PNP_STATE(DeviceData, Stopped);
+		DeviceData->Started = FALSE;
 
         status = STATUS_SUCCESS;
         break;

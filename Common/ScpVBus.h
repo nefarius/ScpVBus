@@ -4,6 +4,22 @@ DEFINE_GUID (GUID_DEVINTERFACE_SCPVBUS, 0xf679f562, 0x3164, 0x42ce, 0xa4, 0xdb, 
 #ifndef __SCPVBUS_H
 #define __SCPVBUS_H
 
+// Bus Version
+#define VER_L_ 0x02
+#define VER_M_ 0x01
+#define VER_H_ 0x07
+#define VER_X_ 0x01
+
+// Bus Version Number
+#define	BUS_VERSION	(VER_L_ + 0x10*VER_M_ + 0x100*VER_H_ + 0x1000*VER_X_)
+
+// Bus Version String
+#define STRINGIFY_1(x)   #x
+#define STRINGIFY(x)     STRINGIFY_1(x)
+#define PASTE(x, y) x##y
+#define MAKEWIDE(x) PASTE(L,x)
+#define	BUS_VERSION_STR	MAKEWIDE(STRINGIFY(VER_H_)) L"." MAKEWIDE(STRINGIFY(VER_M_)) L"."  MAKEWIDE(STRINGIFY(VER_L_))
+
 
 // HID Report size
 #define REPORT_SIZE	20

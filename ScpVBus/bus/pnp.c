@@ -553,6 +553,7 @@ VOID Bus_InitializePdo(__drv_in(__drv_aliasesMem) PDEVICE_OBJECT Pdo, PFDO_DEVIC
     pdoData->ParentFdo = FdoData->Self;
 
     pdoData->Present = TRUE;
+    pdoData->Started = FALSE;
     pdoData->ReportedMissing = FALSE;
 
     INITIALIZE_PNP_STATE(pdoData);

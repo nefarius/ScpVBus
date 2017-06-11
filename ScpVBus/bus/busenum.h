@@ -49,6 +49,7 @@ DEFINE_GUID (GUID_DEVCLASS_X360WIRED_CUSTOM, 0xA8BA2D1F, 0x894F, 0x464A, 0xB0, 0
 #define RUMBLE_SIZE 8
 #define LEDSET_SIZE 3
 #define LEDNUM_SIZE 1
+#define STATUS_SIZE 1
 
 #define CURRENT_PROCESS_ID() ((DWORD)((DWORD_PTR)PsGetCurrentProcessId() & 0xFFFFFFFF))
 
@@ -122,8 +123,9 @@ typedef struct _PDO_DEVICE_DATA {
 
     LIST_ENTRY  Link;
 
-    BOOLEAN     Present;
-    BOOLEAN     ReportedMissing;
+	BOOLEAN     Present;
+	BOOLEAN     Started;
+	BOOLEAN     ReportedMissing;
     UCHAR       Reserved[2]; // for 4 byte alignment
 
     ULONG       InterfaceRefCount;
